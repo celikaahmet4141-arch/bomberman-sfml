@@ -1,3 +1,0 @@
-C:/Users/celik/Desktop/bomberman/build/_deps/flac-subbuild/CMakeFiles/flac-populate.dir
-C:/Users/celik/Desktop/bomberman/build/_deps/flac-subbuild/CMakeFiles/ALL_BUILD.dir
-C:/Users/celik/Desktop/bomberman/build/_deps/flac-subbuild/CMakeFiles/ZERO_CHECK.dir
