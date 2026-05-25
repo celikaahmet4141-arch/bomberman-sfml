@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/celik/Desktop/bomberman/build/_deps/sfml-subbuild/CMakeFiles/sfml-populate"
+		},
+		{
+			"file" : "C:/Users/celik/Desktop/bomberman/build/_deps/sfml-subbuild/CMakeFiles/40a60fe6b4709dc3ce0f73ae6c7365cb/sfml-populate.rule"
+		},
+		{
+			"file" : "C:/Users/celik/Desktop/bomberman/build/_deps/sfml-subbuild/CMakeFiles/5cfab64c422e46bb9c2f1ac663381712/sfml-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Users/celik/Desktop/bomberman/build/_deps/sfml-subbuild/CMakeFiles/ae14517c7fd755ad9aab8c4c6380a8a0/sfml-populate-build.rule"
+		},
+		{
+			"file" : "C:/Users/celik/Desktop/bomberman/build/_deps/sfml-subbuild/CMakeFiles/ae14517c7fd755ad9aab8c4c6380a8a0/sfml-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Users/celik/Desktop/bomberman/build/_deps/sfml-subbuild/CMakeFiles/ae14517c7fd755ad9aab8c4c6380a8a0/sfml-populate-download.rule"
+		},
+		{
+			"file" : "C:/Users/celik/Desktop/bomberman/build/_deps/sfml-subbuild/CMakeFiles/ae14517c7fd755ad9aab8c4c6380a8a0/sfml-populate-install.rule"
+		},
+		{
+			"file" : "C:/Users/celik/Desktop/bomberman/build/_deps/sfml-subbuild/CMakeFiles/ae14517c7fd755ad9aab8c4c6380a8a0/sfml-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/celik/Desktop/bomberman/build/_deps/sfml-subbuild/CMakeFiles/ae14517c7fd755ad9aab8c4c6380a8a0/sfml-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Users/celik/Desktop/bomberman/build/_deps/sfml-subbuild/CMakeFiles/ae14517c7fd755ad9aab8c4c6380a8a0/sfml-populate-test.rule"
+		},
+		{
+			"file" : "C:/Users/celik/Desktop/bomberman/build/_deps/sfml-subbuild/CMakeFiles/ae14517c7fd755ad9aab8c4c6380a8a0/sfml-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"sfml-populate"
+		],
+		"name" : "sfml-populate"
+	}
+}

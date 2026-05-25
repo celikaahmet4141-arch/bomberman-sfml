@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Solution>
+	<Configurations>
+		<BuildType Name="Debug"/>
+		<Platform Name="x64"/>
+	</Configurations>
+	<Folder Name="/CMakePredefinedTargets/">
+		<Project Path="ALL_BUILD.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="3c3dae3f-f3b4-3107-8135-451616f294a1" DefaultStartup="true">
+			<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+			<BuildDependency Project="ogg-populate.vcxproj"/>
+			<Build Solution="Debug|*" Project="false"/>
+		</Project>
+		<Project Path="ZERO_CHECK.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="28176dff-2e68-3e87-b397-754da21ce50d"/>
+	</Folder>
+	<Folder Name="/ExternalProjectTargets/"/>
+	<Folder Name="/ExternalProjectTargets/ogg-populate/">
+		<Project Path="ogg-populate.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="87d3de5c-fccd-39c9-bd1c-c18688c69b4e">
+			<BuildDependency Project="ZERO_CHECK.vcxproj"/>
+		</Project>
+	</Folder>
+</Solution>

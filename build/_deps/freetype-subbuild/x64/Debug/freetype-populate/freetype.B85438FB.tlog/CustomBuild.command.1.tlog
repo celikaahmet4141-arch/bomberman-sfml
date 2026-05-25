@@ -1,0 +1,154 @@
+^C:\USERS\CELIK\DESKTOP\BOMBERMAN\BUILD\_DEPS\FREETYPE-SUBBUILD\CMAKEFILES\3C8606864F416673BA942BC2C84C5F5E\FREETYPE-POPULATE-MKDIR.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -Dcfgdir=/Debug -P C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/freetype-populate-prefix/tmp/freetype-populate-mkdirs.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/freetype-populate-prefix/src/freetype-populate-stamp/Debug/freetype-populate-mkdir
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\CELIK\DESKTOP\BOMBERMAN\BUILD\_DEPS\FREETYPE-SUBBUILD\CMAKEFILES\3C8606864F416673BA942BC2C84C5F5E\FREETYPE-POPULATE-DOWNLOAD.RULE
+setlocal
+cd C:\Users\celik\Desktop\bomberman\build\_deps
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/freetype-populate-prefix/tmp/freetype-populate-gitclone.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/freetype-populate-prefix/src/freetype-populate-stamp/Debug/freetype-populate-download
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\CELIK\DESKTOP\BOMBERMAN\BUILD\_DEPS\FREETYPE-SUBBUILD\CMAKEFILES\3C8606864F416673BA942BC2C84C5F5E\FREETYPE-POPULATE-UPDATE.RULE
+setlocal
+cd C:\Users\celik\Desktop\bomberman\build\_deps\freetype-src
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -Dcan_fetch=YES -DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE -P C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/freetype-populate-prefix/tmp/freetype-populate-gitupdate.cmake
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\CELIK\DESKTOP\BOMBERMAN\BUILD\_DEPS\FREETYPE-SUBBUILD\CMAKEFILES\3C8606864F416673BA942BC2C84C5F5E\FREETYPE-POPULATE-PATCH.RULE
+setlocal
+cd C:\Users\celik\Desktop\bomberman\build\_deps\freetype-src
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -DFREETYPE_DIR=C:/Users/celik/Desktop/bomberman/build/_deps/freetype-src -P C:/Users/celik/Desktop/bomberman/build/_deps/sfml-src/tools/freetype/PatchFreetype.cmake
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/freetype-populate-prefix/src/freetype-populate-stamp/Debug/freetype-populate-patch
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\CELIK\DESKTOP\BOMBERMAN\BUILD\_DEPS\FREETYPE-SUBBUILD\CMAKEFILES\3C8606864F416673BA942BC2C84C5F5E\FREETYPE-POPULATE-CONFIGURE.RULE
+setlocal
+cd C:\Users\celik\Desktop\bomberman\build\_deps\freetype-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/freetype-populate-prefix/src/freetype-populate-stamp/Debug/freetype-populate-configure
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\CELIK\DESKTOP\BOMBERMAN\BUILD\_DEPS\FREETYPE-SUBBUILD\CMAKEFILES\3C8606864F416673BA942BC2C84C5F5E\FREETYPE-POPULATE-BUILD.RULE
+setlocal
+cd C:\Users\celik\Desktop\bomberman\build\_deps\freetype-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/freetype-populate-prefix/src/freetype-populate-stamp/Debug/freetype-populate-build
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\CELIK\DESKTOP\BOMBERMAN\BUILD\_DEPS\FREETYPE-SUBBUILD\CMAKEFILES\3C8606864F416673BA942BC2C84C5F5E\FREETYPE-POPULATE-INSTALL.RULE
+setlocal
+cd C:\Users\celik\Desktop\bomberman\build\_deps\freetype-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/freetype-populate-prefix/src/freetype-populate-stamp/Debug/freetype-populate-install
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\CELIK\DESKTOP\BOMBERMAN\BUILD\_DEPS\FREETYPE-SUBBUILD\CMAKEFILES\3C8606864F416673BA942BC2C84C5F5E\FREETYPE-POPULATE-TEST.RULE
+setlocal
+cd C:\Users\celik\Desktop\bomberman\build\_deps\freetype-build
+if %errorlevel% neq 0 goto :cmEnd
+C:
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E echo_append
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/freetype-populate-prefix/src/freetype-populate-stamp/Debug/freetype-populate-test
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\CELIK\DESKTOP\BOMBERMAN\BUILD\_DEPS\FREETYPE-SUBBUILD\CMAKEFILES\E049AE1955624AD0D58AC445FCD00707\FREETYPE-POPULATE-COMPLETE.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -E make_directory C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/CMakeFiles/Debug
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/CMakeFiles/Debug/freetype-populate-complete
+if %errorlevel% neq 0 goto :cmEnd
+"C:\Program Files\CMake\bin\cmake.exe" -E touch C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/freetype-populate-prefix/src/freetype-populate-stamp/Debug/freetype-populate-done
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\CELIK\DESKTOP\BOMBERMAN\BUILD\_DEPS\FREETYPE-SUBBUILD\CMAKEFILES\A9004200458F2964C6D88C69E725B1D1\FREETYPE-POPULATE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\CELIK\DESKTOP\BOMBERMAN\BUILD\_DEPS\FREETYPE-SUBBUILD\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild -BC:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild --check-stamp-file C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

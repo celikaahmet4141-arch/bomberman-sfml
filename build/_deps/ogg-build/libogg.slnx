@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Solution>
+	<Configurations>
+		<BuildType Name="Debug"/>
+		<BuildType Name="Release"/>
+		<BuildType Name="MinSizeRel"/>
+		<BuildType Name="RelWithDebInfo"/>
+		<Platform Name="x64"/>
+	</Configurations>
+	<Folder Name="/CMake/">
+		<Project Path="ALL_BUILD.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="25201a0e-503a-313c-b76d-8c04b4c1c963" DefaultStartup="true">
+			<BuildDependency Project="../../ZERO_CHECK.vcxproj"/>
+			<BuildDependency Project="ogg.vcxproj"/>
+		</Project>
+		<Project Path="INSTALL.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="2e5d9d96-4483-374e-b5d3-ebd1764704d9">
+			<BuildDependency Project="ALL_BUILD.vcxproj"/>
+			<BuildDependency Project="../../ZERO_CHECK.vcxproj"/>
+			<Build Solution="Debug|*" Project="false"/>
+			<Build Solution="Release|*" Project="false"/>
+			<Build Solution="MinSizeRel|*" Project="false"/>
+			<Build Solution="RelWithDebInfo|*" Project="false"/>
+		</Project>
+		<Project Path="PACKAGE.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="973be9b5-f8f2-383f-b513-a7aedd0066a9">
+			<BuildDependency Project="ALL_BUILD.vcxproj"/>
+			<BuildDependency Project="../../ZERO_CHECK.vcxproj"/>
+			<Build Solution="Debug|*" Project="false"/>
+			<Build Solution="Release|*" Project="false"/>
+			<Build Solution="MinSizeRel|*" Project="false"/>
+			<Build Solution="RelWithDebInfo|*" Project="false"/>
+		</Project>
+		<Project Path="../../ZERO_CHECK.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="9ab3dce2-5cf0-3aea-aa7b-cd5fbed6d9e4"/>
+	</Folder>
+	<Folder Name="/Dependencies/">
+		<Project Path="ogg.vcxproj" Type="8bc9ceb8-8b4a-11d0-8d11-00a0c91bc942" Id="be75dc68-f535-3135-af96-d6bd19b8e331">
+			<BuildDependency Project="../../ZERO_CHECK.vcxproj"/>
+		</Project>
+	</Folder>
+</Solution>

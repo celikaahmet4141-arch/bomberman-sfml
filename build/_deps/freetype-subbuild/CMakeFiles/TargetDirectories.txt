@@ -1,0 +1,3 @@
+C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/CMakeFiles/freetype-populate.dir
+C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/CMakeFiles/ALL_BUILD.dir
+C:/Users/celik/Desktop/bomberman/build/_deps/freetype-subbuild/CMakeFiles/ZERO_CHECK.dir
