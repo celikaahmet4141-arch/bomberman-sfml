@@ -1,0 +1,11 @@
+build/
+.vscode/
+.vs/
+out/
+CMakeFiles/
+_deps/
+*.exe
+*.obj
+*.pdb
+*.ilk
+*.log
