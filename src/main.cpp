@@ -9,6 +9,8 @@ const int TILE_SIZE = 36;
 const int ROWS = 21;
 const int COLS = 25;
 const int MAX_PLAYER_LIVES = 3;
+const float PLAYER_INVULNERABILITY_TIME = 1.0f;
+const float ENTITY_COLLISION_MARGIN = 8.0f;
 
 // 0 = Empty path
 // 1 = Solid wall
@@ -899,6 +901,55 @@ void drawHealthHUD(sf::RenderWindow& window, int playerLives)
     }
 }
 
+bool areEntitiesTouching(float firstX, float firstY, float secondX, float secondY)
+{
+    float firstLeft = firstX + ENTITY_COLLISION_MARGIN;
+    float firstRight = firstX + TILE_SIZE - ENTITY_COLLISION_MARGIN;
+    float firstTop = firstY + ENTITY_COLLISION_MARGIN;
+    float firstBottom = firstY + TILE_SIZE - ENTITY_COLLISION_MARGIN;
+
+    float secondLeft = secondX + ENTITY_COLLISION_MARGIN;
+    float secondRight = secondX + TILE_SIZE - ENTITY_COLLISION_MARGIN;
+    float secondTop = secondY + ENTITY_COLLISION_MARGIN;
+    float secondBottom = secondY + TILE_SIZE - ENTITY_COLLISION_MARGIN;
+
+    bool overlapX = firstLeft < secondRight && firstRight > secondLeft;
+    bool overlapY = firstTop < secondBottom && firstBottom > secondTop;
+
+    return overlapX && overlapY;
+}
+
+void checkEnemyContactDamage(
+    float playerX,
+    float playerY,
+    const std::vector<Enemy>& enemies,
+    int& playerLives,
+    float& playerInvulnerabilityTimer
+)
+{
+    if (playerInvulnerabilityTimer > 0.0f)
+        return;
+
+    if (playerLives <= 0)
+        return;
+
+    for (const Enemy& enemy : enemies)
+    {
+        if (areEntitiesTouching(playerX, playerY, enemy.x, enemy.y))
+        {
+            playerLives--;
+
+            if (playerLives < 0)
+            {
+                playerLives = 0;
+            }
+
+            playerInvulnerabilityTimer = PLAYER_INVULNERABILITY_TIME;
+            break;
+        }
+    }
+}
+
 int main()
 {
     sf::RenderWindow window(
@@ -913,6 +964,7 @@ int main()
     float playerSpeed = 180.f;
 
     int playerLives = MAX_PLAYER_LIVES;
+    float playerInvulnerabilityTimer = 0.0f;
 
     sf::Clock deltaClock;
 
@@ -942,6 +994,16 @@ std::vector<Enemy> enemies =
         }
 
         float deltaTime = deltaClock.restart().asSeconds();
+
+        if (playerInvulnerabilityTimer > 0.0f)
+{
+    playerInvulnerabilityTimer -= deltaTime;
+
+    if (playerInvulnerabilityTimer < 0.0f)
+    {
+        playerInvulnerabilityTimer = 0.0f;
+    }
+}
 
         float moveX = 0.f;
         float moveY = 0.f;
@@ -987,15 +1049,34 @@ std::vector<Enemy> enemies =
         }
 
         for (Enemy& enemy : enemies)
-{
+    {
     updateEnemy(enemy, deltaTime, rng);
-}
+    }
+
+     checkEnemyContactDamage(
+     playerX,
+     playerY,
+     enemies,
+     playerLives,
+     playerInvulnerabilityTimer
+);
 
         window.clear(sf::Color(6, 6, 10));
 
         drawTileMap(window);
 
-        drawKnight(window, playerX, playerY, static_cast<float>(TILE_SIZE));
+        bool shouldDrawPlayer = true;
+
+if (playerInvulnerabilityTimer > 0.0f)
+{
+    int blinkFrame = static_cast<int>(playerInvulnerabilityTimer * 12.0f);
+    shouldDrawPlayer = blinkFrame % 2 == 0;
+}
+
+if (shouldDrawPlayer)
+{
+    drawKnight(window, playerX, playerY, static_cast<float>(TILE_SIZE));
+}
 
         for (const Enemy& enemy : enemies)
 {
