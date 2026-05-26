@@ -8,6 +8,7 @@
 const int TILE_SIZE = 36;
 const int ROWS = 21;
 const int COLS = 25;
+const int MAX_PLAYER_LIVES = 3;
 
 // 0 = Empty path
 // 1 = Solid wall
@@ -750,6 +751,57 @@ void drawGoblin(sf::RenderWindow& window, float x, float y, float size)
     window.draw(rightLeg);
 }
 
+void drawHeart(sf::RenderWindow& window, float x, float y, bool full)
+{
+    sf::Color heartColor;
+
+    if (full)
+        heartColor = sf::Color(170, 25, 35);
+    else
+        heartColor = sf::Color(45, 45, 52);
+
+    sf::CircleShape leftCircle(6.f);
+    leftCircle.setPosition(sf::Vector2f(x, y));
+    leftCircle.setFillColor(heartColor);
+    leftCircle.setOutlineThickness(1.f);
+    leftCircle.setOutlineColor(sf::Color(15, 15, 18));
+    window.draw(leftCircle);
+
+    sf::CircleShape rightCircle(6.f);
+    rightCircle.setPosition(sf::Vector2f(x + 8.f, y));
+    rightCircle.setFillColor(heartColor);
+    rightCircle.setOutlineThickness(1.f);
+    rightCircle.setOutlineColor(sf::Color(15, 15, 18));
+    window.draw(rightCircle);
+
+    sf::ConvexShape bottom;
+    bottom.setPointCount(3);
+    bottom.setPoint(0, sf::Vector2f(x - 1.f, y + 7.f));
+    bottom.setPoint(1, sf::Vector2f(x + 21.f, y + 7.f));
+    bottom.setPoint(2, sf::Vector2f(x + 10.f, y + 22.f));
+    bottom.setFillColor(heartColor);
+    bottom.setOutlineThickness(1.f);
+    bottom.setOutlineColor(sf::Color(15, 15, 18));
+    window.draw(bottom);
+}
+
+void drawHealthHUD(sf::RenderWindow& window, int playerLives)
+{
+    sf::RectangleShape panel;
+    panel.setSize(sf::Vector2f(125.f, 34.f));
+    panel.setPosition(sf::Vector2f(8.f, 8.f));
+    panel.setFillColor(sf::Color(10, 10, 14, 220));
+    panel.setOutlineThickness(2.f);
+    panel.setOutlineColor(sf::Color(85, 72, 55));
+    window.draw(panel);
+
+    for (int i = 0; i < MAX_PLAYER_LIVES; i++)
+    {
+        bool full = i < playerLives;
+        drawHeart(window, 18.f + i * 34.f, 15.f, full);
+    }
+}
+
 int main()
 {
     sf::RenderWindow window(
@@ -762,6 +814,8 @@ int main()
     float playerX = static_cast<float>((COLS / 2) * TILE_SIZE);
     float playerY = static_cast<float>((ROWS / 2) * TILE_SIZE);
     float playerSpeed = 180.f;
+
+    int playerLives = MAX_PLAYER_LIVES;
 
     sf::Clock deltaClock;
 
@@ -850,8 +904,16 @@ std::vector<Enemy> enemies =
 {
         drawGoblin(window, enemy.x, enemy.y, static_cast<float>(TILE_SIZE));
 }
+        drawHealthHUD(window, playerLives);
+
         window.display();
+
+        
     }
+
+    
+    
+
 
     return 0;
 }
