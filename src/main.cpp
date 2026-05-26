@@ -751,54 +751,151 @@ void drawGoblin(sf::RenderWindow& window, float x, float y, float size)
     window.draw(rightLeg);
 }
 
-void drawHeart(sf::RenderWindow& window, float x, float y, bool full)
+void drawGothicHeart(sf::RenderWindow& window, float x, float y, bool full)
 {
+    sf::Color outlineColor(25, 12, 16);
+    sf::Color shadowColor(8, 8, 12, 180);
+
     sf::Color heartColor;
+    sf::Color highlightColor;
 
     if (full)
-        heartColor = sf::Color(170, 25, 35);
+    {
+        heartColor = sf::Color(165, 22, 38);
+        highlightColor = sf::Color(235, 70, 85);
+    }
     else
-        heartColor = sf::Color(45, 45, 52);
+    {
+        heartColor = sf::Color(45, 43, 50);
+        highlightColor = sf::Color(75, 72, 82);
+    }
 
-    sf::CircleShape leftCircle(6.f);
-    leftCircle.setPosition(sf::Vector2f(x, y));
-    leftCircle.setFillColor(heartColor);
-    leftCircle.setOutlineThickness(1.f);
-    leftCircle.setOutlineColor(sf::Color(15, 15, 18));
-    window.draw(leftCircle);
+    // Heart shadow
+    sf::CircleShape shadowLeft(7.f);
+    shadowLeft.setPosition(sf::Vector2f(x + 3.f, y + 4.f));
+    shadowLeft.setFillColor(shadowColor);
+    window.draw(shadowLeft);
 
-    sf::CircleShape rightCircle(6.f);
-    rightCircle.setPosition(sf::Vector2f(x + 8.f, y));
-    rightCircle.setFillColor(heartColor);
-    rightCircle.setOutlineThickness(1.f);
-    rightCircle.setOutlineColor(sf::Color(15, 15, 18));
-    window.draw(rightCircle);
+    sf::CircleShape shadowRight(7.f);
+    shadowRight.setPosition(sf::Vector2f(x + 13.f, y + 4.f));
+    shadowRight.setFillColor(shadowColor);
+    window.draw(shadowRight);
 
-    sf::ConvexShape bottom;
-    bottom.setPointCount(3);
-    bottom.setPoint(0, sf::Vector2f(x - 1.f, y + 7.f));
-    bottom.setPoint(1, sf::Vector2f(x + 21.f, y + 7.f));
-    bottom.setPoint(2, sf::Vector2f(x + 10.f, y + 22.f));
-    bottom.setFillColor(heartColor);
-    bottom.setOutlineThickness(1.f);
-    bottom.setOutlineColor(sf::Color(15, 15, 18));
-    window.draw(bottom);
+    sf::ConvexShape shadowBottom;
+    shadowBottom.setPointCount(3);
+    shadowBottom.setPoint(0, sf::Vector2f(x + 1.f, y + 12.f));
+    shadowBottom.setPoint(1, sf::Vector2f(x + 29.f, y + 12.f));
+    shadowBottom.setPoint(2, sf::Vector2f(x + 15.f, y + 31.f));
+    shadowBottom.setFillColor(shadowColor);
+    window.draw(shadowBottom);
+
+    // Dark outer heart base
+    sf::CircleShape outerLeft(8.f);
+    outerLeft.setPosition(sf::Vector2f(x + 1.f, y + 1.f));
+    outerLeft.setFillColor(outlineColor);
+    window.draw(outerLeft);
+
+    sf::CircleShape outerRight(8.f);
+    outerRight.setPosition(sf::Vector2f(x + 12.f, y + 1.f));
+    outerRight.setFillColor(outlineColor);
+    window.draw(outerRight);
+
+    sf::ConvexShape outerBottom;
+    outerBottom.setPointCount(3);
+    outerBottom.setPoint(0, sf::Vector2f(x - 1.f, y + 10.f));
+    outerBottom.setPoint(1, sf::Vector2f(x + 29.f, y + 10.f));
+    outerBottom.setPoint(2, sf::Vector2f(x + 14.f, y + 31.f));
+    outerBottom.setFillColor(outlineColor);
+    window.draw(outerBottom);
+
+    // Inner red / empty heart
+    sf::CircleShape innerLeft(6.5f);
+    innerLeft.setPosition(sf::Vector2f(x + 3.f, y + 3.f));
+    innerLeft.setFillColor(heartColor);
+    window.draw(innerLeft);
+
+    sf::CircleShape innerRight(6.5f);
+    innerRight.setPosition(sf::Vector2f(x + 13.5f, y + 3.f));
+    innerRight.setFillColor(heartColor);
+    window.draw(innerRight);
+
+    sf::ConvexShape innerBottom;
+    innerBottom.setPointCount(3);
+    innerBottom.setPoint(0, sf::Vector2f(x + 2.f, y + 11.f));
+    innerBottom.setPoint(1, sf::Vector2f(x + 26.f, y + 11.f));
+    innerBottom.setPoint(2, sf::Vector2f(x + 14.f, y + 28.f));
+    innerBottom.setFillColor(heartColor);
+    window.draw(innerBottom);
+
+    // Top shine
+    sf::CircleShape shine(2.4f);
+    shine.setPosition(sf::Vector2f(x + 7.f, y + 6.f));
+    shine.setFillColor(highlightColor);
+    window.draw(shine);
+
+    // Small gothic cut in the middle
+    sf::ConvexShape notch;
+    notch.setPointCount(3);
+    notch.setPoint(0, sf::Vector2f(x + 11.f, y + 10.f));
+    notch.setPoint(1, sf::Vector2f(x + 17.f, y + 10.f));
+    notch.setPoint(2, sf::Vector2f(x + 14.f, y + 15.f));
+    notch.setFillColor(outlineColor);
+    window.draw(notch);
+
+    // Empty heart crack detail
+    if (!full)
+    {
+        sf::RectangleShape crack1;
+        crack1.setSize(sf::Vector2f(2.f, 9.f));
+        crack1.setPosition(sf::Vector2f(x + 14.f, y + 11.f));
+        crack1.setFillColor(sf::Color(18, 18, 22));
+        window.draw(crack1);
+
+        sf::RectangleShape crack2;
+        crack2.setSize(sf::Vector2f(2.f, 7.f));
+        crack2.setPosition(sf::Vector2f(x + 17.f, y + 17.f));
+        crack2.setFillColor(sf::Color(18, 18, 22));
+        window.draw(crack2);
+    }
 }
 
 void drawHealthHUD(sf::RenderWindow& window, int playerLives)
 {
+    // Main HUD panel
     sf::RectangleShape panel;
-    panel.setSize(sf::Vector2f(125.f, 34.f));
+    panel.setSize(sf::Vector2f(145.f, 42.f));
     panel.setPosition(sf::Vector2f(8.f, 8.f));
-    panel.setFillColor(sf::Color(10, 10, 14, 220));
+    panel.setFillColor(sf::Color(9, 9, 13, 230));
     panel.setOutlineThickness(2.f);
-    panel.setOutlineColor(sf::Color(85, 72, 55));
+    panel.setOutlineColor(sf::Color(95, 78, 48));
     window.draw(panel);
+
+    // Inner dark plate
+    sf::RectangleShape innerPanel;
+    innerPanel.setSize(sf::Vector2f(135.f, 32.f));
+    innerPanel.setPosition(sf::Vector2f(13.f, 13.f));
+    innerPanel.setFillColor(sf::Color(18, 17, 23, 220));
+    innerPanel.setOutlineThickness(1.f);
+    innerPanel.setOutlineColor(sf::Color(45, 38, 30));
+    window.draw(innerPanel);
+
+    // Small golden corner details
+    sf::RectangleShape topLine;
+    topLine.setSize(sf::Vector2f(35.f, 2.f));
+    topLine.setPosition(sf::Vector2f(18.f, 16.f));
+    topLine.setFillColor(sf::Color(135, 105, 48));
+    window.draw(topLine);
+
+    sf::RectangleShape bottomLine;
+    bottomLine.setSize(sf::Vector2f(35.f, 2.f));
+    bottomLine.setPosition(sf::Vector2f(108.f, 41.f));
+    bottomLine.setFillColor(sf::Color(135, 105, 48));
+    window.draw(bottomLine);
 
     for (int i = 0; i < MAX_PLAYER_LIVES; i++)
     {
         bool full = i < playerLives;
-        drawHeart(window, 18.f + i * 34.f, 15.f, full);
+        drawGothicHeart(window, 23.f + i * 38.f, 17.f, full);
     }
 }
 
