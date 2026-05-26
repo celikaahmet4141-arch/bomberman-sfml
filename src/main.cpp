@@ -9,6 +9,7 @@ const int TILE_SIZE = 36;
 const int ROWS = 21;
 const int COLS = 25;
 const int MAX_PLAYER_LIVES = 3;
+const int MAX_ACTIVE_BOMBS = 1;
 const float PLAYER_INVULNERABILITY_TIME = 1.0f;
 const float ENTITY_COLLISION_MARGIN = 8.0f;
 
@@ -63,6 +64,13 @@ struct Enemy
     float stuckTimer;
     sf::Vector2f lastPosition;
     std::vector<sf::Vector2i> recentTiles;
+};
+
+struct Bomb
+{
+    int row;
+    int col;
+    bool playerCanPass;
 };
 
 bool canMoveToPixel(float x, float y);
@@ -377,9 +385,9 @@ void resetLevel(
     float& playerY,
     int& playerLives,
     float& playerInvulnerabilityTimer,
-    std::vector<Enemy>& enemies
+    std::vector<Enemy>& enemies,
+    std::vector<Bomb>& bombs
 )
-
 {
     playerX = static_cast<float>((COLS / 2) * TILE_SIZE);
     playerY = static_cast<float>((ROWS / 2) * TILE_SIZE);
@@ -393,6 +401,8 @@ void resetLevel(
     enemies.push_back(createEnemy(1, COLS - 2, Direction::Left));
     enemies.push_back(createEnemy(ROWS - 2, 1, Direction::Right));
     enemies.push_back(createEnemy(ROWS - 2, COLS - 2, Direction::Left));
+
+    bombs.clear();
 }
 
 void drawFloor(sf::RenderWindow& window, int row, int col)
@@ -538,6 +548,119 @@ bool canMoveToPixel(float x, float y)
         return false;
 
     return true;
+}
+
+bool hasBombAt(const std::vector<Bomb>& bombs, int row, int col)
+{
+    for (const Bomb& bomb : bombs)
+    {
+        if (bomb.row == row && bomb.col == col)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool entityOverlapsTile(float x, float y, int row, int col)
+{
+    const float margin = 7.f;
+
+    float entityLeft = x + margin;
+    float entityRight = x + TILE_SIZE - margin;
+    float entityTop = y + margin;
+    float entityBottom = y + TILE_SIZE - margin;
+
+    float tileLeft = static_cast<float>(col * TILE_SIZE);
+    float tileRight = tileLeft + TILE_SIZE;
+    float tileTop = static_cast<float>(row * TILE_SIZE);
+    float tileBottom = tileTop + TILE_SIZE;
+
+    bool overlapX = entityLeft < tileRight && entityRight > tileLeft;
+    bool overlapY = entityTop < tileBottom && entityBottom > tileTop;
+
+    return overlapX && overlapY;
+}
+
+bool canMoveToPixelWithBombs(float x, float y, const std::vector<Bomb>& bombs)
+{
+    if (!canMoveToPixel(x, y))
+    {
+        return false;
+    }
+
+    const float margin = 7.f;
+
+    int leftCol = static_cast<int>((x + margin) / TILE_SIZE);
+    int rightCol = static_cast<int>((x + TILE_SIZE - margin) / TILE_SIZE);
+    int topRow = static_cast<int>((y + margin) / TILE_SIZE);
+    int bottomRow = static_cast<int>((y + TILE_SIZE - margin) / TILE_SIZE);
+
+    for (const Bomb& bomb : bombs)
+    {
+        if (bomb.playerCanPass)
+        {
+            continue;
+        }
+
+        bool touchesBombTile =
+            (topRow == bomb.row && leftCol == bomb.col) ||
+            (topRow == bomb.row && rightCol == bomb.col) ||
+            (bottomRow == bomb.row && leftCol == bomb.col) ||
+            (bottomRow == bomb.row && rightCol == bomb.col);
+
+        if (touchesBombTile)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void updateBombPassState(std::vector<Bomb>& bombs, float playerX, float playerY)
+{
+    for (Bomb& bomb : bombs)
+    {
+        if (bomb.playerCanPass)
+        {
+            if (!entityOverlapsTile(playerX, playerY, bomb.row, bomb.col))
+            {
+                bomb.playerCanPass = false;
+            }
+        }
+    }
+}
+
+void placeBomb(std::vector<Bomb>& bombs, float playerX, float playerY)
+{
+    if (bombs.size() >= MAX_ACTIVE_BOMBS)
+    {
+        return;
+    }
+
+    sf::Vector2i playerTile = getTileFromPixel(playerX, playerY);
+
+    int col = playerTile.x;
+    int row = playerTile.y;
+
+    if (level1[row][col] != 0)
+    {
+        return;
+    }
+
+    if (hasBombAt(bombs, row, col))
+    {
+        return;
+    }
+
+    Bomb bomb;
+    bomb.row = row;
+    bomb.col = col;
+    bomb.playerCanPass = true;
+
+    bombs.push_back(bomb);
 }
 
 void drawKnight(sf::RenderWindow& window, float x, float y, float size)
@@ -889,6 +1012,62 @@ void drawGothicHeart(sf::RenderWindow& window, float x, float y, bool full)
     }
 }
 
+void drawBomb(sf::RenderWindow& window, const Bomb& bomb)
+{
+    float x = static_cast<float>(bomb.col * TILE_SIZE);
+    float y = static_cast<float>(bomb.row * TILE_SIZE);
+
+    // Shadow
+    sf::CircleShape shadow(TILE_SIZE * 0.28f);
+    shadow.setPosition(sf::Vector2f(x + 8.f, y + 12.f));
+    shadow.setFillColor(sf::Color(0, 0, 0, 120));
+    window.draw(shadow);
+
+    // Bomb body
+    sf::CircleShape body(TILE_SIZE * 0.28f);
+    body.setPosition(sf::Vector2f(x + 8.f, y + 8.f));
+    body.setFillColor(sf::Color(18, 18, 22));
+    body.setOutlineThickness(2.f);
+    body.setOutlineColor(sf::Color(75, 70, 80));
+    window.draw(body);
+
+    // Bomb shine
+    sf::CircleShape shine(TILE_SIZE * 0.07f);
+    shine.setPosition(sf::Vector2f(x + 15.f, y + 13.f));
+    shine.setFillColor(sf::Color(95, 95, 105));
+    window.draw(shine);
+
+    // Fuse base
+    sf::RectangleShape fuseBase;
+    fuseBase.setSize(sf::Vector2f(6.f, 5.f));
+    fuseBase.setPosition(sf::Vector2f(x + 22.f, y + 6.f));
+    fuseBase.setFillColor(sf::Color(70, 55, 35));
+    fuseBase.setRotation(sf::degrees(-20.f));
+    window.draw(fuseBase);
+
+    // Fuse
+    sf::RectangleShape fuse;
+    fuse.setSize(sf::Vector2f(14.f, 3.f));
+    fuse.setPosition(sf::Vector2f(x + 25.f, y + 3.f));
+    fuse.setFillColor(sf::Color(135, 90, 35));
+    fuse.setRotation(sf::degrees(-25.f));
+    window.draw(fuse);
+
+    // Small spark
+    sf::CircleShape spark(3.f);
+    spark.setPosition(sf::Vector2f(x + 34.f, y - 1.f));
+    spark.setFillColor(sf::Color(230, 120, 25));
+    window.draw(spark);
+}
+
+void drawBombs(sf::RenderWindow& window, const std::vector<Bomb>& bombs)
+{
+    for (const Bomb& bomb : bombs)
+    {
+        drawBomb(window, bomb);
+    }
+}
+
 void drawHealthHUD(sf::RenderWindow& window, int playerLives)
 {
     // Main HUD panel
@@ -1088,6 +1267,9 @@ std::vector<Enemy> enemies =
     createEnemy(ROWS - 2, COLS - 2, Direction::Left)
 };
 
+std::vector<Bomb> bombs;
+bool spaceWasPressed = false;
+
     while (window.isOpen())
     {
         while (const std::optional event = window.pollEvent())
@@ -1112,7 +1294,8 @@ std::vector<Enemy> enemies =
             playerY,
             playerLives,
             playerInvulnerabilityTimer,
-            enemies
+            enemies,
+            bombs
         );
 
         gameState = GameState::Playing;
@@ -1123,6 +1306,14 @@ std::vector<Enemy> enemies =
         float deltaTime = deltaClock.restart().asSeconds();
         if (gameState == GameState::Playing)
 {
+    bool spacePressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space);
+
+if (spacePressed && !spaceWasPressed)
+{
+    placeBomb(bombs, playerX, playerY);
+}
+
+spaceWasPressed = spacePressed;
 
         if (playerInvulnerabilityTimer > 0.0f)
 {
@@ -1167,15 +1358,17 @@ std::vector<Enemy> enemies =
         float newX = playerX + moveX * playerSpeed * deltaTime;
         float newY = playerY + moveY * playerSpeed * deltaTime;
 
-        if (canMoveToPixel(newX, playerY))
-        {
-            playerX = newX;
-        }
+        if (canMoveToPixelWithBombs(newX, playerY, bombs))
+{
+    playerX = newX;
+}
 
-        if (canMoveToPixel(playerX, newY))
-        {
-            playerY = newY;
-        }
+if (canMoveToPixelWithBombs(playerX, newY, bombs))
+{
+    playerY = newY;
+}
+
+updateBombPassState(bombs, playerX, playerY);
 
         for (Enemy& enemy : enemies)
     {
@@ -1200,6 +1393,8 @@ if (playerLives <= 0)
         window.clear(sf::Color(6, 6, 10));
 
         drawTileMap(window);
+
+        drawBombs(window, bombs);
 
         bool shouldDrawPlayer = true;
 
