@@ -2,6 +2,8 @@
 #include <vector>
 #include <optional>
 #include <cmath>
+#include <random>
+#include <algorithm>
 
 const int TILE_SIZE = 36;
 const int ROWS = 21;
@@ -34,6 +36,333 @@ int level1[ROWS][COLS] =
     {1,0,0,0,0,0,1,0,0,2,0,0,0,0,0,2,0,0,1,0,0,0,0,0,1},
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
+
+enum class Direction
+{
+    Up,
+    Down,
+    Left,
+    Right
+};
+
+struct Enemy
+{
+    float x;
+    float y;
+    float speed;
+    Direction direction;
+    float decisionTimer;
+    float stuckTimer;
+    sf::Vector2f lastPosition;
+    std::vector<sf::Vector2i> recentTiles;
+};
+
+bool canMoveToPixel(float x, float y);
+
+sf::Vector2f getDirectionVector(Direction direction)
+{
+    if (direction == Direction::Up)
+        return sf::Vector2f(0.f, -1.f);
+
+    if (direction == Direction::Down)
+        return sf::Vector2f(0.f, 1.f);
+
+    if (direction == Direction::Left)
+        return sf::Vector2f(-1.f, 0.f);
+
+    return sf::Vector2f(1.f, 0.f);
+}
+
+Direction getOppositeDirection(Direction direction)
+{
+    if (direction == Direction::Up)
+        return Direction::Down;
+
+    if (direction == Direction::Down)
+        return Direction::Up;
+
+    if (direction == Direction::Left)
+        return Direction::Right;
+
+    return Direction::Left;
+}
+
+sf::Vector2i getTileFromPixel(float x, float y)
+{
+    int col = static_cast<int>((x + TILE_SIZE / 2.f) / TILE_SIZE);
+    int row = static_cast<int>((y + TILE_SIZE / 2.f) / TILE_SIZE);
+
+    return sf::Vector2i(col, row);
+}
+
+bool isWalkableTile(int row, int col)
+{
+    if (row < 0 || row >= ROWS || col < 0 || col >= COLS)
+        return false;
+
+    return level1[row][col] == 0;
+}
+
+int countOpenNeighborTiles(int row, int col)
+{
+    int count = 0;
+
+    if (isWalkableTile(row - 1, col))
+        count++;
+
+    if (isWalkableTile(row + 1, col))
+        count++;
+
+    if (isWalkableTile(row, col - 1))
+        count++;
+
+    if (isWalkableTile(row, col + 1))
+        count++;
+
+    return count;
+}
+
+bool isDeadEndTile(int row, int col)
+{
+    if (!isWalkableTile(row, col))
+        return false;
+
+    return countOpenNeighborTiles(row, col) <= 1;
+}
+
+sf::Vector2i getTargetTileForDirection(const Enemy& enemy, Direction direction)
+{
+    sf::Vector2i currentTile = getTileFromPixel(enemy.x, enemy.y);
+
+    if (direction == Direction::Up)
+        return sf::Vector2i(currentTile.x, currentTile.y - 1);
+
+    if (direction == Direction::Down)
+        return sf::Vector2i(currentTile.x, currentTile.y + 1);
+
+    if (direction == Direction::Left)
+        return sf::Vector2i(currentTile.x - 1, currentTile.y);
+
+    return sf::Vector2i(currentTile.x + 1, currentTile.y);
+}
+
+bool isTileRecentlyVisited(const Enemy& enemy, sf::Vector2i tile)
+{
+    for (const auto& recentTile : enemy.recentTiles)
+    {
+        if (recentTile == tile)
+            return true;
+    }
+
+    return false;
+}
+
+void rememberEnemyTile(Enemy& enemy)
+{
+    sf::Vector2i currentTile = getTileFromPixel(enemy.x, enemy.y);
+
+    if (enemy.recentTiles.empty() || enemy.recentTiles.back() != currentTile)
+    {
+        enemy.recentTiles.push_back(currentTile);
+    }
+
+    if (enemy.recentTiles.size() > 6)
+    {
+        enemy.recentTiles.erase(enemy.recentTiles.begin());
+    }
+}
+
+std::vector<Direction> getValidEnemyDirections(const Enemy& enemy, bool avoidDeadEnds)
+{
+    std::vector<Direction> validDirections;
+
+    std::vector<Direction> allDirections =
+    {
+        Direction::Up,
+        Direction::Down,
+        Direction::Left,
+        Direction::Right
+    };
+
+    for (Direction direction : allDirections)
+    {
+        sf::Vector2i targetTile = getTargetTileForDirection(enemy, direction);
+
+        int targetCol = targetTile.x;
+        int targetRow = targetTile.y;
+
+        if (!isWalkableTile(targetRow, targetCol))
+            continue;
+
+        if (avoidDeadEnds && isDeadEndTile(targetRow, targetCol))
+            continue;
+
+        sf::Vector2f movement = getDirectionVector(direction);
+
+        float testX = enemy.x + movement.x * 6.f;
+        float testY = enemy.y + movement.y * 6.f;
+
+        if (canMoveToPixel(testX, testY))
+        {
+            validDirections.push_back(direction);
+        }
+    }
+
+    return validDirections;
+}
+
+Direction chooseEnemyDirection(Enemy& enemy, std::mt19937& rng)
+{
+    sf::Vector2i currentTile = getTileFromPixel(enemy.x, enemy.y);
+
+    int currentCol = currentTile.x;
+    int currentRow = currentTile.y;
+
+    // Eger dusman cikmaz sokagin icindeyse direkt tek cikisa yonel.
+    if (isDeadEndTile(currentRow, currentCol))
+    {
+        std::vector<Direction> escapeDirections =
+        {
+            Direction::Up,
+            Direction::Down,
+            Direction::Left,
+            Direction::Right
+        };
+
+        for (Direction direction : escapeDirections)
+        {
+            sf::Vector2i targetTile = getTargetTileForDirection(enemy, direction);
+
+            int targetCol = targetTile.x;
+            int targetRow = targetTile.y;
+
+            if (isWalkableTile(targetRow, targetCol))
+            {
+                return direction;
+            }
+        }
+    }
+
+    // Normal durumda once cikmaz sokaklardan kacin.
+    std::vector<Direction> validDirections = getValidEnemyDirections(enemy, true);
+
+    // Eger cikmaz sokaklardan kacininca secenek kalmadiysa mecburen normal seceneklere bak.
+    if (validDirections.empty())
+    {
+        validDirections = getValidEnemyDirections(enemy, false);
+    }
+
+    if (validDirections.empty())
+    {
+        return getOppositeDirection(enemy.direction);
+    }
+
+    Direction opposite = getOppositeDirection(enemy.direction);
+
+    std::vector<Direction> filteredDirections;
+
+    for (Direction direction : validDirections)
+    {
+        if (direction != opposite || validDirections.size() == 1)
+        {
+            filteredDirections.push_back(direction);
+        }
+    }
+
+    std::vector<Direction> freshDirections;
+
+    for (Direction direction : filteredDirections)
+    {
+        sf::Vector2i targetTile = getTargetTileForDirection(enemy, direction);
+
+        if (!isTileRecentlyVisited(enemy, targetTile))
+        {
+            freshDirections.push_back(direction);
+        }
+    }
+
+    if (!freshDirections.empty())
+    {
+        std::shuffle(freshDirections.begin(), freshDirections.end(), rng);
+        return freshDirections.front();
+    }
+
+    if (!filteredDirections.empty())
+    {
+        std::shuffle(filteredDirections.begin(), filteredDirections.end(), rng);
+        return filteredDirections.front();
+    }
+
+    std::shuffle(validDirections.begin(), validDirections.end(), rng);
+    return validDirections.front();
+}
+
+void updateEnemy(Enemy& enemy, float deltaTime, std::mt19937& rng)
+{
+    rememberEnemyTile(enemy);
+
+    enemy.decisionTimer -= deltaTime;
+
+    if (enemy.decisionTimer <= 0.f)
+    {
+        enemy.direction = chooseEnemyDirection(enemy, rng);
+
+        std::uniform_real_distribution<float> timeDistribution(0.8f, 2.0f);
+        enemy.decisionTimer = timeDistribution(rng);
+    }
+
+    sf::Vector2f movement = getDirectionVector(enemy.direction);
+
+    float newX = enemy.x + movement.x * enemy.speed * deltaTime;
+    float newY = enemy.y + movement.y * enemy.speed * deltaTime;
+
+    if (canMoveToPixel(newX, newY))
+    {
+        enemy.x = newX;
+        enemy.y = newY;
+    }
+    else
+    {
+        enemy.direction = chooseEnemyDirection(enemy, rng);
+        enemy.decisionTimer = 0.25f;
+    }
+
+    float movedDistance =
+        std::abs(enemy.x - enemy.lastPosition.x) +
+        std::abs(enemy.y - enemy.lastPosition.y);
+
+    if (movedDistance < 0.4f)
+    {
+        enemy.stuckTimer += deltaTime;
+    }
+    else
+    {
+        enemy.stuckTimer = 0.f;
+        enemy.lastPosition = sf::Vector2f(enemy.x, enemy.y);
+    }
+
+    if (enemy.stuckTimer > 0.6f)
+    {
+        enemy.direction = chooseEnemyDirection(enemy, rng);
+        enemy.decisionTimer = 0.1f;
+        enemy.stuckTimer = 0.f;
+    }
+}
+
+Enemy createEnemy(int row, int col, Direction startDirection)
+{
+    Enemy enemy;
+
+    enemy.x = col * TILE_SIZE;
+    enemy.y = row * TILE_SIZE;
+    enemy.speed = 70.f;
+    enemy.direction = startDirection;
+    enemy.decisionTimer = 1.f;
+    enemy.stuckTimer = 0.f;
+    enemy.lastPosition = sf::Vector2f(enemy.x, enemy.y);
+
+    return enemy;
+}
 
 void drawFloor(sf::RenderWindow& window, int row, int col)
 {
@@ -436,13 +765,15 @@ int main()
 
     sf::Clock deltaClock;
 
-    std::vector<sf::Vector2i> enemies =
-    {
-        {1, 1},
-        {1, COLS - 2},
-        {ROWS - 2, 1},
-        {ROWS - 2, COLS - 2}
-    };
+ std::mt19937 rng(std::random_device{}());
+
+std::vector<Enemy> enemies =
+{
+    createEnemy(1, 1, Direction::Right),
+    createEnemy(1, COLS - 2, Direction::Left),
+    createEnemy(ROWS - 2, 1, Direction::Right),
+    createEnemy(ROWS - 2, COLS - 2, Direction::Left)
+};
 
     while (window.isOpen())
     {
@@ -504,19 +835,21 @@ int main()
             playerY = newY;
         }
 
+        for (Enemy& enemy : enemies)
+{
+    updateEnemy(enemy, deltaTime, rng);
+}
+
         window.clear(sf::Color(6, 6, 10));
 
         drawTileMap(window);
 
         drawKnight(window, playerX, playerY, static_cast<float>(TILE_SIZE));
 
-        for (const sf::Vector2i& enemy : enemies)
-        {
-            float enemyX = static_cast<float>(enemy.y * TILE_SIZE);
-            float enemyY = static_cast<float>(enemy.x * TILE_SIZE);
-            drawGoblin(window, enemyX, enemyY, static_cast<float>(TILE_SIZE));
-        }
-
+        for (const Enemy& enemy : enemies)
+{
+        drawGoblin(window, enemy.x, enemy.y, static_cast<float>(TILE_SIZE));
+}
         window.display();
     }
 
