@@ -47,6 +47,11 @@ enum class Direction
     Left,
     Right
 };
+enum class GameState
+{
+    Playing,
+    GameOver
+};
 
 struct Enemy
 {
@@ -365,6 +370,29 @@ Enemy createEnemy(int row, int col, Direction startDirection)
     enemy.lastPosition = sf::Vector2f(enemy.x, enemy.y);
 
     return enemy;
+}
+
+void resetLevel(
+    float& playerX,
+    float& playerY,
+    int& playerLives,
+    float& playerInvulnerabilityTimer,
+    std::vector<Enemy>& enemies
+)
+
+{
+    playerX = static_cast<float>((COLS / 2) * TILE_SIZE);
+    playerY = static_cast<float>((ROWS / 2) * TILE_SIZE);
+
+    playerLives = MAX_PLAYER_LIVES;
+    playerInvulnerabilityTimer = 0.0f;
+
+    enemies.clear();
+
+    enemies.push_back(createEnemy(1, 1, Direction::Right));
+    enemies.push_back(createEnemy(1, COLS - 2, Direction::Left));
+    enemies.push_back(createEnemy(ROWS - 2, 1, Direction::Right));
+    enemies.push_back(createEnemy(ROWS - 2, COLS - 2, Direction::Left));
 }
 
 void drawFloor(sf::RenderWindow& window, int row, int col)
@@ -950,8 +978,79 @@ void checkEnemyContactDamage(
     }
 }
 
+void drawGameOverScreen(sf::RenderWindow& window, const sf::Font& font)
+{
+    float screenWidth = static_cast<float>(COLS * TILE_SIZE);
+    float screenHeight = static_cast<float>(ROWS * TILE_SIZE);
+
+    sf::RectangleShape darkOverlay;
+    darkOverlay.setSize(sf::Vector2f(screenWidth, screenHeight));
+    darkOverlay.setPosition(sf::Vector2f(0.f, 0.f));
+    darkOverlay.setFillColor(sf::Color(0, 0, 0, 185));
+    window.draw(darkOverlay);
+
+    sf::RectangleShape panel;
+    panel.setSize(sf::Vector2f(470.f, 260.f));
+    panel.setPosition(sf::Vector2f(screenWidth / 2.f - 235.f, screenHeight / 2.f - 130.f));
+    panel.setFillColor(sf::Color(14, 12, 18, 245));
+    panel.setOutlineThickness(3.f);
+    panel.setOutlineColor(sf::Color(120, 30, 35));
+    window.draw(panel);
+
+    sf::RectangleShape innerPanel;
+    innerPanel.setSize(sf::Vector2f(440.f, 230.f));
+    innerPanel.setPosition(sf::Vector2f(screenWidth / 2.f - 220.f, screenHeight / 2.f - 115.f));
+    innerPanel.setFillColor(sf::Color(22, 19, 27, 235));
+    innerPanel.setOutlineThickness(1.f);
+    innerPanel.setOutlineColor(sf::Color(135, 105, 55));
+    window.draw(innerPanel);
+
+    // Decorative top line
+    sf::RectangleShape topLine;
+    topLine.setSize(sf::Vector2f(240.f, 3.f));
+    topLine.setPosition(sf::Vector2f(screenWidth / 2.f - 120.f, screenHeight / 2.f - 85.f));
+    topLine.setFillColor(sf::Color(150, 115, 60));
+    window.draw(topLine);
+
+    // Decorative bottom line
+    sf::RectangleShape bottomLine;
+    bottomLine.setSize(sf::Vector2f(240.f, 3.f));
+    bottomLine.setPosition(sf::Vector2f(screenWidth / 2.f - 120.f, screenHeight / 2.f + 72.f));
+    bottomLine.setFillColor(sf::Color(150, 115, 60));
+    window.draw(bottomLine);
+
+    sf::Text title(font);
+    title.setString("GAME OVER");
+    title.setCharacterSize(62);
+    title.setFillColor(sf::Color(185, 35, 42));
+    title.setOutlineThickness(3.f);
+    title.setOutlineColor(sf::Color(55, 10, 12));
+    title.setPosition(sf::Vector2f(screenWidth / 2.f - 175.f, screenHeight / 2.f - 65.f));
+    window.draw(title);
+
+    sf::Text subtitle(font);
+    subtitle.setString("Press R to continue");
+    subtitle.setCharacterSize(28);
+    subtitle.setFillColor(sf::Color(215, 200, 165));
+    subtitle.setOutlineThickness(1.5f);
+    subtitle.setOutlineColor(sf::Color(45, 35, 28));
+    subtitle.setPosition(sf::Vector2f(screenWidth / 2.f - 135.f, screenHeight / 2.f + 5.f));
+    window.draw(subtitle);
+
+    sf::Text exitText(font);
+    exitText.setString("Press Esc to quit");
+    exitText.setCharacterSize(22);
+    exitText.setFillColor(sf::Color(155, 145, 125));
+    exitText.setOutlineThickness(1.f);
+    exitText.setOutlineColor(sf::Color(35, 30, 25));
+    exitText.setPosition(sf::Vector2f(screenWidth / 2.f - 105.f, screenHeight / 2.f + 45.f));
+    window.draw(exitText);
+}
+
 int main()
 {
+
+    
     sf::RenderWindow window(
         sf::VideoMode({COLS * TILE_SIZE, ROWS * TILE_SIZE}),
         "Bomberman Dungeon Arena - Level 1"
@@ -959,12 +1058,23 @@ int main()
 
     window.setFramerateLimit(60);
 
+ 
+    sf::Font gameFont;
+
+if (!gameFont.openFromFile("C:/Windows/Fonts/arial.ttf"))
+{
+    return -1;
+}
+
+
+
     float playerX = static_cast<float>((COLS / 2) * TILE_SIZE);
     float playerY = static_cast<float>((ROWS / 2) * TILE_SIZE);
     float playerSpeed = 180.f;
 
     int playerLives = MAX_PLAYER_LIVES;
     float playerInvulnerabilityTimer = 0.0f;
+    GameState gameState = GameState::Playing;
 
     sf::Clock deltaClock;
 
@@ -993,7 +1103,26 @@ std::vector<Enemy> enemies =
             window.close();
         }
 
+        if (gameState == GameState::GameOver)
+{
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R))
+    {
+        resetLevel(
+            playerX,
+            playerY,
+            playerLives,
+            playerInvulnerabilityTimer,
+            enemies
+        );
+
+        gameState = GameState::Playing;
+        deltaClock.restart();
+    }
+}
+
         float deltaTime = deltaClock.restart().asSeconds();
+        if (gameState == GameState::Playing)
+{
 
         if (playerInvulnerabilityTimer > 0.0f)
 {
@@ -1061,6 +1190,13 @@ std::vector<Enemy> enemies =
      playerInvulnerabilityTimer
 );
 
+if (playerLives <= 0)
+{
+    gameState = GameState::GameOver;
+}
+
+}
+
         window.clear(sf::Color(6, 6, 10));
 
         drawTileMap(window);
@@ -1083,6 +1219,11 @@ if (shouldDrawPlayer)
         drawGoblin(window, enemy.x, enemy.y, static_cast<float>(TILE_SIZE));
 }
         drawHealthHUD(window, playerLives);
+
+        if (gameState == GameState::GameOver)
+{
+    drawGameOverScreen(window, gameFont);
+}
 
         window.display();
 
