@@ -10,6 +10,7 @@ const int ROWS = 21;
 const int COLS = 25;
 const int MAX_PLAYER_LIVES = 3;
 const int MAX_ACTIVE_BOMBS = 1;
+const float BOMB_TIMER = 2.0f;
 const float PLAYER_INVULNERABILITY_TIME = 1.0f;
 const float ENTITY_COLLISION_MARGIN = 8.0f;
 
@@ -70,6 +71,7 @@ struct Bomb
 {
     int row;
     int col;
+    float timer;
     bool playerCanPass;
 };
 
@@ -658,9 +660,30 @@ void placeBomb(std::vector<Bomb>& bombs, float playerX, float playerY)
     Bomb bomb;
     bomb.row = row;
     bomb.col = col;
+    bomb.timer = BOMB_TIMER;
     bomb.playerCanPass = true;
 
     bombs.push_back(bomb);
+}
+
+void updateBombTimers(std::vector<Bomb>& bombs, float deltaTime)
+{
+    for (Bomb& bomb : bombs)
+    {
+        bomb.timer -= deltaTime;
+    }
+
+    bombs.erase(
+        std::remove_if(
+            bombs.begin(),
+            bombs.end(),
+            [](const Bomb& bomb)
+            {
+                return bomb.timer <= 0.0f;
+            }
+        ),
+        bombs.end()
+    );
 }
 
 void drawKnight(sf::RenderWindow& window, float x, float y, float size)
@@ -1017,24 +1040,46 @@ void drawBomb(sf::RenderWindow& window, const Bomb& bomb)
     float x = static_cast<float>(bomb.col * TILE_SIZE);
     float y = static_cast<float>(bomb.row * TILE_SIZE);
 
+    float timerRatio = bomb.timer / BOMB_TIMER;
+
+    if (timerRatio < 0.0f)
+        timerRatio = 0.0f;
+
+    if (timerRatio > 1.0f)
+        timerRatio = 1.0f;
+
+    float pulse = 1.0f + (1.0f - timerRatio) * 0.12f;
+
     // Shadow
     sf::CircleShape shadow(TILE_SIZE * 0.28f);
-    shadow.setPosition(sf::Vector2f(x + 8.f, y + 12.f));
-    shadow.setFillColor(sf::Color(0, 0, 0, 120));
+    shadow.setPosition(sf::Vector2f(x + 8.f, y + 13.f));
+    shadow.setFillColor(sf::Color(0, 0, 0, 130));
     window.draw(shadow);
 
     // Bomb body
-    sf::CircleShape body(TILE_SIZE * 0.28f);
-    body.setPosition(sf::Vector2f(x + 8.f, y + 8.f));
-    body.setFillColor(sf::Color(18, 18, 22));
+    sf::CircleShape body(TILE_SIZE * 0.28f * pulse);
+    body.setPosition(sf::Vector2f(
+        x + 8.f - ((pulse - 1.0f) * 4.f),
+        y + 8.f - ((pulse - 1.0f) * 4.f)
+    ));
+    body.setFillColor(sf::Color(17, 17, 22));
     body.setOutlineThickness(2.f);
-    body.setOutlineColor(sf::Color(75, 70, 80));
+    body.setOutlineColor(sf::Color(78, 72, 85));
     window.draw(body);
 
+    // Red warning glow when close to exploding
+    if (bomb.timer < 0.7f)
+    {
+        sf::CircleShape dangerGlow(TILE_SIZE * 0.12f);
+        dangerGlow.setPosition(sf::Vector2f(x + 13.f, y + 13.f));
+        dangerGlow.setFillColor(sf::Color(150, 20, 25, 130));
+        window.draw(dangerGlow);
+    }
+
     // Bomb shine
-    sf::CircleShape shine(TILE_SIZE * 0.07f);
+    sf::CircleShape shine(TILE_SIZE * 0.065f);
     shine.setPosition(sf::Vector2f(x + 15.f, y + 13.f));
-    shine.setFillColor(sf::Color(95, 95, 105));
+    shine.setFillColor(sf::Color(100, 100, 112));
     window.draw(shine);
 
     // Fuse base
@@ -1053,11 +1098,22 @@ void drawBomb(sf::RenderWindow& window, const Bomb& bomb)
     fuse.setRotation(sf::degrees(-25.f));
     window.draw(fuse);
 
-    // Small spark
-    sf::CircleShape spark(3.f);
-    spark.setPosition(sf::Vector2f(x + 34.f, y - 1.f));
-    spark.setFillColor(sf::Color(230, 120, 25));
-    window.draw(spark);
+    // Spark blinks faster near explosion
+    int blinkSpeed = bomb.timer < 0.7f ? 18 : 8;
+    int blinkFrame = static_cast<int>(bomb.timer * blinkSpeed);
+
+    if (blinkFrame % 2 == 0)
+    {
+        sf::CircleShape spark(3.5f);
+        spark.setPosition(sf::Vector2f(x + 34.f, y - 1.f));
+        spark.setFillColor(sf::Color(240, 125, 25));
+        window.draw(spark);
+
+        sf::CircleShape smallSpark(2.f);
+        smallSpark.setPosition(sf::Vector2f(x + 38.f, y + 2.f));
+        smallSpark.setFillColor(sf::Color(255, 210, 70));
+        window.draw(smallSpark);
+    }
 }
 
 void drawBombs(sf::RenderWindow& window, const std::vector<Bomb>& bombs)
@@ -1369,6 +1425,7 @@ if (canMoveToPixelWithBombs(playerX, newY, bombs))
 }
 
 updateBombPassState(bombs, playerX, playerY);
+updateBombTimers(bombs, deltaTime);
 
         for (Enemy& enemy : enemies)
     {
