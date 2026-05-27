@@ -1439,6 +1439,56 @@ void checkEnemyContactDamage(
     }
 }
 
+bool isPlayerHitByExplosion(
+    float playerX,
+    float playerY,
+    const std::vector<Explosion>& explosions
+)
+{
+    for (const Explosion& explosion : explosions)
+    {
+        for (const sf::Vector2i& tile : explosion.tiles)
+        {
+            int col = tile.x;
+            int row = tile.y;
+
+            if (entityOverlapsTile(playerX, playerY, row, col))
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+void checkPlayerExplosionDamage(
+    float playerX,
+    float playerY,
+    const std::vector<Explosion>& explosions,
+    int& playerLives,
+    float& playerInvulnerabilityTimer
+)
+{
+    if (playerInvulnerabilityTimer > 0.0f)
+        return;
+
+    if (playerLives <= 0)
+        return;
+
+    if (isPlayerHitByExplosion(playerX, playerY, explosions))
+    {
+        playerLives--;
+
+        if (playerLives < 0)
+        {
+            playerLives = 0;
+        }
+
+        playerInvulnerabilityTimer = PLAYER_INVULNERABILITY_TIME;
+    }
+}
+
 void drawGameOverScreen(sf::RenderWindow& window, const sf::Font& font)
 {
     float screenWidth = static_cast<float>(COLS * TILE_SIZE);
@@ -1660,17 +1710,26 @@ if (canMoveToPixelWithBombs(playerX, newY, bombs))
     updateEnemy(enemy, deltaTime, rng);
     }
 
-    updateBombPassState(bombs, playerX, playerY);
+    
+updateBombPassState(bombs, playerX, playerY);
 updateBombTimers(bombs, explosions, deltaTime);
 updateExplosions(explosions, deltaTime);
 removeEnemiesHitByExplosions(enemies, explosions);
 
-     checkEnemyContactDamage(
-     playerX,
-     playerY,
-     enemies,
-     playerLives,
-     playerInvulnerabilityTimer
+checkPlayerExplosionDamage(
+    playerX,
+    playerY,
+    explosions,
+    playerLives,
+    playerInvulnerabilityTimer
+);
+
+checkEnemyContactDamage(
+    playerX,
+    playerY,
+    enemies,
+    playerLives,
+    playerInvulnerabilityTimer
 );
 
 if (playerLives <= 0)
