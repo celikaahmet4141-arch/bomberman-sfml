@@ -45,6 +45,19 @@ int level1[ROWS][COLS] =
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
+int originalLevel1[ROWS][COLS];
+
+void copyLevelMap(const int source[ROWS][COLS], int target[ROWS][COLS])
+{
+    for (int row = 0; row < ROWS; row++)
+    {
+        for (int col = 0; col < COLS; col++)
+        {
+            target[row][col] = source[row][col];
+        }
+    }
+}
+
 enum class Direction
 {
     Up,
@@ -401,6 +414,8 @@ void resetLevel(
     std::vector<Explosion>& explosions
 )
 {
+    copyLevelMap(originalLevel1, level1);
+
     playerX = static_cast<float>((COLS / 2) * TILE_SIZE);
     playerY = static_cast<float>((ROWS / 2) * TILE_SIZE);
 
@@ -721,11 +736,32 @@ std::vector<sf::Vector2i> createExplosionTiles(int bombRow, int bombCol)
     return tiles;
 }
 
+void destroyBreakableBlocksInExplosion(const std::vector<sf::Vector2i>& explosionTiles)
+{
+    for (const sf::Vector2i& tile : explosionTiles)
+    {
+        int col = tile.x;
+        int row = tile.y;
+
+        if (row < 0 || row >= ROWS || col < 0 || col >= COLS)
+        {
+            continue;
+        }
+
+        if (level1[row][col] == 2)
+        {
+            level1[row][col] = 0;
+        }
+    }
+}
+
 void createExplosion(std::vector<Explosion>& explosions, int row, int col)
 {
     Explosion explosion;
     explosion.tiles = createExplosionTiles(row, col);
     explosion.timer = EXPLOSION_DURATION;
+
+    destroyBreakableBlocksInExplosion(explosion.tiles);
 
     explosions.push_back(explosion);
 }
@@ -1445,6 +1481,8 @@ int main()
     );
 
     window.setFramerateLimit(60);
+
+    copyLevelMap(level1, originalLevel1);
 
  
     sf::Font gameFont;
