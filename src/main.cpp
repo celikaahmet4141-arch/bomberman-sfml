@@ -804,6 +804,43 @@ void updateExplosions(std::vector<Explosion>& explosions, float deltaTime)
     );
 }
 
+bool isEnemyHitByExplosion(const Enemy& enemy, const std::vector<Explosion>& explosions)
+{
+    for (const Explosion& explosion : explosions)
+    {
+        for (const sf::Vector2i& tile : explosion.tiles)
+        {
+            int col = tile.x;
+            int row = tile.y;
+
+            if (entityOverlapsTile(enemy.x, enemy.y, row, col))
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+void removeEnemiesHitByExplosions(
+    std::vector<Enemy>& enemies,
+    const std::vector<Explosion>& explosions
+)
+{
+    enemies.erase(
+        std::remove_if(
+            enemies.begin(),
+            enemies.end(),
+            [&explosions](const Enemy& enemy)
+            {
+                return isEnemyHitByExplosion(enemy, explosions);
+            }
+        ),
+        enemies.end()
+    );
+}
+
 void drawKnight(sf::RenderWindow& window, float x, float y, float size)
 {
     sf::ConvexShape cape;
@@ -1617,14 +1654,16 @@ if (canMoveToPixelWithBombs(playerX, newY, bombs))
     playerY = newY;
 }
 
-updateBombPassState(bombs, playerX, playerY);
-updateBombTimers(bombs, explosions, deltaTime);
-updateExplosions(explosions, deltaTime);
 
         for (Enemy& enemy : enemies)
     {
     updateEnemy(enemy, deltaTime, rng);
     }
+
+    updateBombPassState(bombs, playerX, playerY);
+updateBombTimers(bombs, explosions, deltaTime);
+updateExplosions(explosions, deltaTime);
+removeEnemiesHitByExplosions(enemies, explosions);
 
      checkEnemyContactDamage(
      playerX,
