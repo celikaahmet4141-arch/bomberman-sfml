@@ -4,6 +4,7 @@
 #include <cmath>
 #include <random>
 #include <algorithm>
+#include <cstdint>
 
 const int TILE_SIZE = 36;
 const int ROWS = 21;
@@ -11,6 +12,8 @@ const int COLS = 25;
 const int MAX_PLAYER_LIVES = 3;
 const int MAX_ACTIVE_BOMBS = 1;
 const float BOMB_TIMER = 2.0f;
+const float EXPLOSION_DURATION = 0.5f;
+const int BOMB_RANGE = 2;
 const float PLAYER_INVULNERABILITY_TIME = 1.0f;
 const float ENTITY_COLLISION_MARGIN = 8.0f;
 
@@ -73,6 +76,12 @@ struct Bomb
     int col;
     float timer;
     bool playerCanPass;
+};
+
+struct Explosion
+{
+    std::vector<sf::Vector2i> tiles;
+    float timer;
 };
 
 bool canMoveToPixel(float x, float y);
@@ -388,7 +397,8 @@ void resetLevel(
     int& playerLives,
     float& playerInvulnerabilityTimer,
     std::vector<Enemy>& enemies,
-    std::vector<Bomb>& bombs
+    std::vector<Bomb>& bombs,
+    std::vector<Explosion>& explosions
 )
 {
     playerX = static_cast<float>((COLS / 2) * TILE_SIZE);
@@ -405,6 +415,7 @@ void resetLevel(
     enemies.push_back(createEnemy(ROWS - 2, COLS - 2, Direction::Left));
 
     bombs.clear();
+    explosions.clear();
 }
 
 void drawFloor(sf::RenderWindow& window, int row, int col)
@@ -666,23 +677,94 @@ void placeBomb(std::vector<Bomb>& bombs, float playerX, float playerY)
     bombs.push_back(bomb);
 }
 
-void updateBombTimers(std::vector<Bomb>& bombs, float deltaTime)
+std::vector<sf::Vector2i> createExplosionTiles(int bombRow, int bombCol)
 {
-    for (Bomb& bomb : bombs)
+    std::vector<sf::Vector2i> tiles;
+
+    // Center tile
+    tiles.push_back(sf::Vector2i(bombCol, bombRow));
+
+    std::vector<sf::Vector2i> directions =
     {
-        bomb.timer -= deltaTime;
+        sf::Vector2i(0, -1), // Up
+        sf::Vector2i(0, 1),  // Down
+        sf::Vector2i(-1, 0), // Left
+        sf::Vector2i(1, 0)   // Right
+    };
+
+    for (const sf::Vector2i& direction : directions)
+    {
+        for (int distance = 1; distance <= BOMB_RANGE; distance++)
+        {
+            int currentCol = bombCol + direction.x * distance;
+            int currentRow = bombRow + direction.y * distance;
+
+            if (currentRow < 0 || currentRow >= ROWS || currentCol < 0 || currentCol >= COLS)
+            {
+                break;
+            }
+
+            if (level1[currentRow][currentCol] == 1)
+            {
+                break;
+            }
+
+            tiles.push_back(sf::Vector2i(currentCol, currentRow));
+
+            if (level1[currentRow][currentCol] == 2)
+            {
+                break;
+            }
+        }
     }
 
-    bombs.erase(
+    return tiles;
+}
+
+void createExplosion(std::vector<Explosion>& explosions, int row, int col)
+{
+    Explosion explosion;
+    explosion.tiles = createExplosionTiles(row, col);
+    explosion.timer = EXPLOSION_DURATION;
+
+    explosions.push_back(explosion);
+}
+
+void updateBombTimers(
+    std::vector<Bomb>& bombs,
+    std::vector<Explosion>& explosions,
+    float deltaTime
+)
+{
+    for (int i = static_cast<int>(bombs.size()) - 1; i >= 0; i--)
+    {
+        bombs[i].timer -= deltaTime;
+
+        if (bombs[i].timer <= 0.0f)
+        {
+            createExplosion(explosions, bombs[i].row, bombs[i].col);
+            bombs.erase(bombs.begin() + i);
+        }
+    }
+}
+
+void updateExplosions(std::vector<Explosion>& explosions, float deltaTime)
+{
+    for (Explosion& explosion : explosions)
+    {
+        explosion.timer -= deltaTime;
+    }
+
+    explosions.erase(
         std::remove_if(
-            bombs.begin(),
-            bombs.end(),
-            [](const Bomb& bomb)
+            explosions.begin(),
+            explosions.end(),
+            [](const Explosion& explosion)
             {
-                return bomb.timer <= 0.0f;
+                return explosion.timer <= 0.0f;
             }
         ),
-        bombs.end()
+        explosions.end()
     );
 }
 
@@ -1124,6 +1206,77 @@ void drawBombs(sf::RenderWindow& window, const std::vector<Bomb>& bombs)
     }
 }
 
+void drawExplosionTile(
+    sf::RenderWindow& window,
+    int row,
+    int col,
+    float timer,
+    bool isCenter
+)
+{
+    float x = static_cast<float>(col * TILE_SIZE);
+    float y = static_cast<float>(row * TILE_SIZE);
+
+    float ratio = timer / EXPLOSION_DURATION;
+
+    if (ratio < 0.0f)
+        ratio = 0.0f;
+
+    if (ratio > 1.0f)
+        ratio = 1.0f;
+
+    std::uint8_t alpha = static_cast<std::uint8_t>(210 * ratio + 45);
+
+    sf::RectangleShape outerFlame;
+    outerFlame.setSize(sf::Vector2f(TILE_SIZE - 6.f, TILE_SIZE - 6.f));
+    outerFlame.setPosition(sf::Vector2f(x + 3.f, y + 3.f));
+    outerFlame.setFillColor(sf::Color(150, 30, 20, alpha));
+    outerFlame.setOutlineThickness(1.f);
+    outerFlame.setOutlineColor(sf::Color(245, 120, 35, alpha));
+    window.draw(outerFlame);
+
+    sf::RectangleShape innerFlame;
+    innerFlame.setSize(sf::Vector2f(TILE_SIZE - 16.f, TILE_SIZE - 16.f));
+    innerFlame.setPosition(sf::Vector2f(x + 8.f, y + 8.f));
+    innerFlame.setFillColor(sf::Color(245, 145, 35, alpha));
+    window.draw(innerFlame);
+
+    sf::RectangleShape core;
+    core.setSize(sf::Vector2f(TILE_SIZE - 24.f, TILE_SIZE - 24.f));
+    core.setPosition(sf::Vector2f(x + 12.f, y + 12.f));
+    core.setFillColor(sf::Color(255, 225, 100, alpha));
+    window.draw(core);
+
+    if (isCenter)
+    {
+        sf::CircleShape centerGlow(TILE_SIZE * 0.34f);
+        centerGlow.setPosition(sf::Vector2f(x + 5.f, y + 5.f));
+        centerGlow.setFillColor(sf::Color(255, 70, 35, static_cast<std::uint8_t>(130 * ratio)));
+        window.draw(centerGlow);
+
+        sf::CircleShape centerCore(TILE_SIZE * 0.20f);
+        centerCore.setPosition(sf::Vector2f(x + 11.f, y + 11.f));
+        centerCore.setFillColor(sf::Color(255, 230, 120, alpha));
+        window.draw(centerCore);
+    }
+}
+
+void drawExplosions(sf::RenderWindow& window, const std::vector<Explosion>& explosions)
+{
+    for (const Explosion& explosion : explosions)
+    {
+        for (int i = 0; i < static_cast<int>(explosion.tiles.size()); i++)
+        {
+            int col = explosion.tiles[i].x;
+            int row = explosion.tiles[i].y;
+
+            bool isCenter = i == 0;
+
+            drawExplosionTile(window, row, col, explosion.timer, isCenter);
+        }
+    }
+}
+
 void drawHealthHUD(sf::RenderWindow& window, int playerLives)
 {
     // Main HUD panel
@@ -1324,6 +1477,7 @@ std::vector<Enemy> enemies =
 };
 
 std::vector<Bomb> bombs;
+std::vector<Explosion> explosions;
 bool spaceWasPressed = false;
 
     while (window.isOpen())
@@ -1351,7 +1505,8 @@ bool spaceWasPressed = false;
             playerLives,
             playerInvulnerabilityTimer,
             enemies,
-            bombs
+            bombs,
+            explosions
         );
 
         gameState = GameState::Playing;
@@ -1425,7 +1580,8 @@ if (canMoveToPixelWithBombs(playerX, newY, bombs))
 }
 
 updateBombPassState(bombs, playerX, playerY);
-updateBombTimers(bombs, deltaTime);
+updateBombTimers(bombs, explosions, deltaTime);
+updateExplosions(explosions, deltaTime);
 
         for (Enemy& enemy : enemies)
     {
@@ -1451,6 +1607,7 @@ if (playerLives <= 0)
 
         drawTileMap(window);
 
+        drawExplosions(window, explosions);
         drawBombs(window, bombs);
 
         bool shouldDrawPlayer = true;
