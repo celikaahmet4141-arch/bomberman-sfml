@@ -69,7 +69,8 @@ enum class Direction
 enum class GameState
 {
     Playing,
-    GameOver
+    GameOver,
+    LevelComplete
 };
 
 struct Enemy
@@ -1688,6 +1689,44 @@ void drawGameOverScreen(sf::RenderWindow& window, const sf::Font& font)
     window.draw(exitText);
 }
 
+void drawLevelCompleteScreen(sf::RenderWindow& window, const sf::Font& font)
+{
+    float screenWidth = static_cast<float>(COLS * TILE_SIZE);
+    float screenHeight = static_cast<float>(ROWS * TILE_SIZE);
+
+    sf::RectangleShape overlay;
+    overlay.setSize(sf::Vector2f(screenWidth, screenHeight));
+    overlay.setFillColor(sf::Color(0, 0, 0, 165));
+    window.draw(overlay);
+
+    sf::Text title(font);
+    title.setString("    VICTORY!  ");
+    title.setCharacterSize(52);
+    title.setFillColor(sf::Color(220, 190, 95));
+    title.setOutlineThickness(3.f);
+    title.setOutlineColor(sf::Color(45, 35, 12));
+    title.setPosition(sf::Vector2f(screenWidth / 2.f - 190.f, screenHeight / 2.f - 70.f));
+    window.draw(title);
+
+    sf::Text subtitle(font);
+    subtitle.setString("All goblins defeated");
+    subtitle.setCharacterSize(26);
+    subtitle.setFillColor(sf::Color(215, 205, 175));
+    subtitle.setOutlineThickness(1.5f);
+    subtitle.setOutlineColor(sf::Color(40, 35, 28));
+    subtitle.setPosition(sf::Vector2f(screenWidth / 2.f - 135.f, screenHeight / 2.f + 0.f));
+    window.draw(subtitle);
+
+    sf::Text restartText(font);
+    restartText.setString("Press R to restart");
+    restartText.setCharacterSize(22);
+    restartText.setFillColor(sf::Color(160, 150, 125));
+    restartText.setOutlineThickness(1.f);
+    restartText.setOutlineColor(sf::Color(30, 28, 24));
+    restartText.setPosition(sf::Vector2f(screenWidth / 2.f - 105.f, screenHeight / 2.f + 42.f));
+    window.draw(restartText);
+}
+
 int main()
 {
 
@@ -1753,6 +1792,8 @@ bool spaceWasPressed = false;
 
         if (gameState == GameState::GameOver)
 {
+    if (gameState == GameState::GameOver || gameState == GameState::LevelComplete)
+{
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R))
     {
         resetLevel(
@@ -1769,6 +1810,7 @@ bool spaceWasPressed = false;
         gameState = GameState::Playing;
         deltaClock.restart();
     }
+}
 }
 
         float deltaTime = deltaClock.restart().asSeconds();
@@ -1869,6 +1911,10 @@ if (playerLives <= 0)
 {
     gameState = GameState::GameOver;
 }
+else if (enemies.empty() && bombs.empty() && explosions.empty())
+{
+    gameState = GameState::LevelComplete;
+}
 
 }
 
@@ -1902,6 +1948,11 @@ if (shouldDrawPlayer)
         if (gameState == GameState::GameOver)
 {
     drawGameOverScreen(window, gameFont);
+}
+
+if (gameState == GameState::LevelComplete)
+{
+    drawLevelCompleteScreen(window, gameFont);
 }
 
         window.display();
