@@ -1352,7 +1352,6 @@ void drawExplosions(sf::RenderWindow& window, const std::vector<Explosion>& expl
 
 void drawHealthHUD(sf::RenderWindow& window, int playerLives)
 {
-    // Main HUD panel
     sf::RectangleShape panel;
     panel.setSize(sf::Vector2f(145.f, 42.f));
     panel.setPosition(sf::Vector2f(8.f, 8.f));
@@ -1361,7 +1360,6 @@ void drawHealthHUD(sf::RenderWindow& window, int playerLives)
     panel.setOutlineColor(sf::Color(95, 78, 48));
     window.draw(panel);
 
-    // Inner dark plate
     sf::RectangleShape innerPanel;
     innerPanel.setSize(sf::Vector2f(135.f, 32.f));
     innerPanel.setPosition(sf::Vector2f(13.f, 13.f));
@@ -1370,7 +1368,6 @@ void drawHealthHUD(sf::RenderWindow& window, int playerLives)
     innerPanel.setOutlineColor(sf::Color(45, 38, 30));
     window.draw(innerPanel);
 
-    // Small golden corner details
     sf::RectangleShape topLine;
     topLine.setSize(sf::Vector2f(35.f, 2.f));
     topLine.setPosition(sf::Vector2f(18.f, 16.f));
@@ -1388,6 +1385,127 @@ void drawHealthHUD(sf::RenderWindow& window, int playerLives)
         bool full = i < playerLives;
         drawGothicHeart(window, 23.f + i * 38.f, 17.f, full);
     }
+}
+
+void drawBombCooldownHUD(sf::RenderWindow& window, const std::vector<Bomb>& bombs)
+{
+    float screenWidth = static_cast<float>(COLS * TILE_SIZE);
+
+    float panelX = screenWidth - 155.f;
+    float panelY = 8.f;
+
+    bool bombReady = bombs.size() < MAX_ACTIVE_BOMBS;
+
+    float readyRatio = 1.0f;
+
+    if (!bombReady && !bombs.empty())
+    {
+        readyRatio = 1.0f - (bombs.front().timer / BOMB_TIMER);
+
+        if (readyRatio < 0.0f)
+            readyRatio = 0.0f;
+
+        if (readyRatio > 1.0f)
+            readyRatio = 1.0f;
+    }
+
+    sf::RectangleShape panel;
+    panel.setSize(sf::Vector2f(145.f, 42.f));
+    panel.setPosition(sf::Vector2f(panelX, panelY));
+    panel.setFillColor(sf::Color(9, 9, 13, 230));
+    panel.setOutlineThickness(2.f);
+    panel.setOutlineColor(sf::Color(95, 78, 48));
+    window.draw(panel);
+
+    sf::RectangleShape innerPanel;
+    innerPanel.setSize(sf::Vector2f(135.f, 32.f));
+    innerPanel.setPosition(sf::Vector2f(panelX + 5.f, panelY + 5.f));
+    innerPanel.setFillColor(sf::Color(18, 17, 23, 220));
+    innerPanel.setOutlineThickness(1.f);
+    innerPanel.setOutlineColor(sf::Color(45, 38, 30));
+    window.draw(innerPanel);
+
+    sf::CircleShape bombShadow(11.f);
+    bombShadow.setPosition(sf::Vector2f(panelX + 19.f, panelY + 14.f));
+    bombShadow.setFillColor(sf::Color(0, 0, 0, 150));
+    window.draw(bombShadow);
+
+    sf::CircleShape bombIcon(10.f);
+    bombIcon.setPosition(sf::Vector2f(panelX + 18.f, panelY + 12.f));
+
+    if (bombReady)
+        bombIcon.setFillColor(sf::Color(42, 85, 55));
+    else
+        bombIcon.setFillColor(sf::Color(82, 32, 32));
+
+    bombIcon.setOutlineThickness(2.f);
+    bombIcon.setOutlineColor(sf::Color(130, 105, 55));
+    window.draw(bombIcon);
+
+    sf::CircleShape shine(3.f);
+    shine.setPosition(sf::Vector2f(panelX + 25.f, panelY + 16.f));
+
+    if (bombReady)
+        shine.setFillColor(sf::Color(135, 210, 130));
+    else
+        shine.setFillColor(sf::Color(210, 95, 70));
+
+    window.draw(shine);
+
+    sf::RectangleShape fuse;
+    fuse.setSize(sf::Vector2f(12.f, 3.f));
+    fuse.setPosition(sf::Vector2f(panelX + 35.f, panelY + 12.f));
+    fuse.setFillColor(sf::Color(135, 90, 35));
+    fuse.setRotation(sf::degrees(-25.f));
+    window.draw(fuse);
+
+    sf::CircleShape statusLight(5.f);
+    statusLight.setPosition(sf::Vector2f(panelX + 53.f, panelY + 16.f));
+
+    if (bombReady)
+        statusLight.setFillColor(sf::Color(70, 190, 80));
+    else
+        statusLight.setFillColor(sf::Color(190, 45, 35));
+
+    window.draw(statusLight);
+
+    sf::RectangleShape barBack;
+    barBack.setSize(sf::Vector2f(68.f, 8.f));
+    barBack.setPosition(sf::Vector2f(panelX + 67.f, panelY + 17.f));
+    barBack.setFillColor(sf::Color(35, 32, 38));
+    barBack.setOutlineThickness(1.f);
+    barBack.setOutlineColor(sf::Color(80, 68, 48));
+    window.draw(barBack);
+
+    sf::RectangleShape barFill;
+    barFill.setSize(sf::Vector2f(68.f * readyRatio, 8.f));
+    barFill.setPosition(sf::Vector2f(panelX + 67.f, panelY + 17.f));
+
+    if (bombReady)
+        barFill.setFillColor(sf::Color(75, 170, 80));
+    else
+        barFill.setFillColor(sf::Color(180, 65, 35));
+
+    window.draw(barFill);
+
+    sf::RectangleShape topLine;
+    topLine.setSize(sf::Vector2f(28.f, 2.f));
+    topLine.setPosition(sf::Vector2f(panelX + 102.f, panelY + 11.f));
+    topLine.setFillColor(sf::Color(135, 105, 48));
+    window.draw(topLine);
+
+    sf::RectangleShape slot;
+    slot.setSize(sf::Vector2f(11.f, 11.f));
+    slot.setPosition(sf::Vector2f(panelX + 121.f, panelY + 27.f));
+    slot.setOutlineThickness(1.f);
+    slot.setOutlineColor(sf::Color(115, 92, 52));
+
+    if (bombReady)
+        slot.setFillColor(sf::Color(55, 95, 58));
+    else
+        slot.setFillColor(sf::Color(85, 38, 35));
+
+    window.draw(slot);
 }
 
 bool areEntitiesTouching(float firstX, float firstY, float secondX, float secondY)
@@ -1764,6 +1882,7 @@ if (shouldDrawPlayer)
         drawGoblin(window, enemy.x, enemy.y, static_cast<float>(TILE_SIZE));
 }
         drawHealthHUD(window, playerLives);
+        drawBombCooldownHUD(window, bombs);
 
         if (gameState == GameState::GameOver)
 {
