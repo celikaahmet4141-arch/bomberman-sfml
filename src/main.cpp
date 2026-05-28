@@ -10,7 +10,8 @@ const int TILE_SIZE = 36;
 const int ROWS = 21;
 const int COLS = 25;
 const int MAX_PLAYER_LIVES = 3;
-const int MAX_ACTIVE_BOMBS = 1;
+const int INITIAL_PLAYER_BOMB_CAPACITY = 1;
+const int MAX_PLAYER_BOMB_CAPACITY = 2;
 const float BOMB_TIMER = 2.0f;
 const float EXPLOSION_DURATION = 0.5f;
 const int BOMB_RANGE = 2;
@@ -408,6 +409,7 @@ void resetLevel(
     float& playerX,
     float& playerY,
     int& playerLives,
+    int& playerBombCapacity,
     float& playerInvulnerabilityTimer,
     std::vector<Enemy>& enemies,
     std::vector<Bomb>& bombs,
@@ -420,6 +422,7 @@ void resetLevel(
     playerY = static_cast<float>((ROWS / 2) * TILE_SIZE);
 
     playerLives = MAX_PLAYER_LIVES;
+    playerBombCapacity = INITIAL_PLAYER_BOMB_CAPACITY;
     playerInvulnerabilityTimer = 0.0f;
 
     enemies.clear();
@@ -661,9 +664,14 @@ void updateBombPassState(std::vector<Bomb>& bombs, float playerX, float playerY)
     }
 }
 
-void placeBomb(std::vector<Bomb>& bombs, float playerX, float playerY)
+void placeBomb(
+    std::vector<Bomb>& bombs,
+    float playerX,
+    float playerY,
+    int playerBombCapacity
+)
 {
-    if (bombs.size() >= MAX_ACTIVE_BOMBS)
+    if (static_cast<int>(bombs.size()) >= playerBombCapacity)
     {
         return;
     }
@@ -1387,14 +1395,18 @@ void drawHealthHUD(sf::RenderWindow& window, int playerLives)
     }
 }
 
-void drawBombCooldownHUD(sf::RenderWindow& window, const std::vector<Bomb>& bombs)
+void drawBombCooldownHUD(
+    sf::RenderWindow& window,
+    const std::vector<Bomb>& bombs,
+    int playerBombCapacity
+)
 {
     float screenWidth = static_cast<float>(COLS * TILE_SIZE);
 
     float panelX = screenWidth - 155.f;
     float panelY = 8.f;
 
-    bool bombReady = bombs.size() < MAX_ACTIVE_BOMBS;
+    bool bombReady = static_cast<int>(bombs.size()) < playerBombCapacity;
 
     float readyRatio = 1.0f;
 
@@ -1704,6 +1716,7 @@ if (!gameFont.openFromFile("C:/Windows/Fonts/arial.ttf"))
     float playerSpeed = 180.f;
 
     int playerLives = MAX_PLAYER_LIVES;
+    int playerBombCapacity = INITIAL_PLAYER_BOMB_CAPACITY;
     float playerInvulnerabilityTimer = 0.0f;
     GameState gameState = GameState::Playing;
 
@@ -1746,6 +1759,7 @@ bool spaceWasPressed = false;
             playerX,
             playerY,
             playerLives,
+            playerBombCapacity,
             playerInvulnerabilityTimer,
             enemies,
             bombs,
@@ -1762,9 +1776,10 @@ bool spaceWasPressed = false;
 {
     bool spacePressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space);
 
-if (spacePressed && !spaceWasPressed)
+
+    if (spacePressed && !spaceWasPressed)
 {
-    placeBomb(bombs, playerX, playerY);
+    placeBomb(bombs, playerX, playerY, playerBombCapacity);
 }
 
 spaceWasPressed = spacePressed;
@@ -1882,7 +1897,7 @@ if (shouldDrawPlayer)
         drawGoblin(window, enemy.x, enemy.y, static_cast<float>(TILE_SIZE));
 }
         drawHealthHUD(window, playerLives);
-        drawBombCooldownHUD(window, bombs);
+        drawBombCooldownHUD(window, bombs, playerBombCapacity);
 
         if (gameState == GameState::GameOver)
 {
