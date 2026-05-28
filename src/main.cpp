@@ -46,7 +46,8 @@ int level1[ROWS][COLS] =
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
-int originalLevel1[ROWS][COLS];
+int currentMap[ROWS][COLS];
+int originalCurrentMap[ROWS][COLS];
 
 void copyLevelMap(const int source[ROWS][COLS], int target[ROWS][COLS])
 {
@@ -57,6 +58,12 @@ void copyLevelMap(const int source[ROWS][COLS], int target[ROWS][COLS])
             target[row][col] = source[row][col];
         }
     }
+}
+
+void loadMap(const int source[ROWS][COLS])
+{
+    copyLevelMap(source, currentMap);
+    copyLevelMap(source, originalCurrentMap);
 }
 
 enum class Direction
@@ -142,7 +149,7 @@ bool isWalkableTile(int row, int col)
     if (row < 0 || row >= ROWS || col < 0 || col >= COLS)
         return false;
 
-    return level1[row][col] == 0;
+    return currentMap[row][col] == 0;
 }
 
 int countOpenNeighborTiles(int row, int col)
@@ -417,7 +424,7 @@ void resetLevel(
     std::vector<Explosion>& explosions
 )
 {
-    copyLevelMap(originalLevel1, level1);
+    copyLevelMap(originalCurrentMap, currentMap);
 
     playerX = static_cast<float>((COLS / 2) * TILE_SIZE);
     playerY = static_cast<float>((ROWS / 2) * TILE_SIZE);
@@ -546,10 +553,10 @@ void drawTileMap(sf::RenderWindow& window)
         {
             drawFloor(window, row, col);
 
-            if (level1[row][col] == 1)
-                drawSolidBlock(window, row, col);
-            else if (level1[row][col] == 2)
-                drawBreakableBlock(window, row, col);
+            if (currentMap[row][col] == 1)
+    drawSolidBlock(window, row, col);
+else if (currentMap[row][col] == 2)
+    drawBreakableBlock(window, row, col);
         }
     }
 }
@@ -567,17 +574,17 @@ bool canMoveToPixel(float x, float y)
     if (topRow < 0 || bottomRow >= ROWS || leftCol < 0 || rightCol >= COLS)
         return false;
 
-    if (level1[topRow][leftCol] != 0)
-        return false;
+    if (currentMap[topRow][leftCol] != 0)
+    return false;
 
-    if (level1[topRow][rightCol] != 0)
-        return false;
+if (currentMap[topRow][rightCol] != 0)
+    return false;
 
-    if (level1[bottomRow][leftCol] != 0)
-        return false;
+if (currentMap[bottomRow][leftCol] != 0)
+    return false;
 
-    if (level1[bottomRow][rightCol] != 0)
-        return false;
+if (currentMap[bottomRow][rightCol] != 0)
+    return false;
 
     return true;
 }
@@ -682,10 +689,10 @@ void placeBomb(
     int col = playerTile.x;
     int row = playerTile.y;
 
-    if (level1[row][col] != 0)
-    {
-        return;
-    }
+    if (currentMap[row][col] != 0)
+{
+    return;
+}
 
     if (hasBombAt(bombs, row, col))
     {
@@ -728,14 +735,14 @@ std::vector<sf::Vector2i> createExplosionTiles(int bombRow, int bombCol)
                 break;
             }
 
-            if (level1[currentRow][currentCol] == 1)
+            if (currentMap[currentRow][currentCol] == 1)
             {
                 break;
             }
 
             tiles.push_back(sf::Vector2i(currentCol, currentRow));
 
-            if (level1[currentRow][currentCol] == 2)
+            if (currentMap[currentRow][currentCol] == 2)
             {
                 break;
             }
@@ -757,9 +764,9 @@ void destroyBreakableBlocksInExplosion(const std::vector<sf::Vector2i>& explosio
             continue;
         }
 
-        if (level1[row][col] == 2)
+        if (currentMap[row][col] == 2)
         {
-            level1[row][col] = 0;
+            currentMap[row][col] = 0;
         }
     }
 }
@@ -1700,7 +1707,7 @@ void drawLevelCompleteScreen(sf::RenderWindow& window, const sf::Font& font)
     window.draw(overlay);
 
     sf::Text title(font);
-    title.setString("    VICTORY!  ");
+    title.setString("   VICTORY!  ");
     title.setCharacterSize(52);
     title.setFillColor(sf::Color(220, 190, 95));
     title.setOutlineThickness(3.f);
@@ -1738,7 +1745,7 @@ int main()
 
     window.setFramerateLimit(60);
 
-    copyLevelMap(level1, originalLevel1);
+    loadMap(level1);
 
  
     sf::Font gameFont;
