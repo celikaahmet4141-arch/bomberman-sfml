@@ -71,6 +71,31 @@ int level2[ROWS][COLS] =
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
+int level3[ROWS][COLS] =
+{
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1},
+    {1,0,0,1,0,0,1,1,2,0,0,0,0,0,0,0,2,1,1,0,0,1,0,0,1},
+    {1,0,0,0,2,0,0,0,1,2,0,1,0,1,0,2,1,0,0,0,2,0,0,0,1},
+    {1,0,0,0,2,2,0,0,0,2,0,1,0,1,0,2,0,0,0,2,2,0,0,0,1},
+    {1,0,0,0,0,2,0,0,2,2,0,1,0,1,0,2,2,0,0,2,0,0,0,0,1},
+    {1,0,0,0,0,1,0,0,2,2,0,2,0,2,0,2,2,0,0,1,0,0,0,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,2,0,2,0,0,0,0,0,0,0,1,0,0,1},
+    {1,0,0,2,0,0,0,2,1,0,0,1,0,1,0,0,1,2,0,0,2,0,0,0,1},
+    {1,0,0,0,0,1,2,0,1,0,0,1,0,1,0,2,1,0,2,1,0,0,0,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,0,0,0,0,1,2,0,1,0,0,1,0,1,0,0,1,0,2,1,0,0,0,0,1},
+    {1,0,0,2,0,0,0,2,1,0,0,1,0,1,0,0,1,2,0,0,2,0,0,0,1},
+    {1,0,1,1,1,1,0,1,0,0,0,2,0,2,0,0,0,0,1,0,1,1,1,1,1},
+    {1,0,0,0,0,1,0,0,2,2,0,2,0,2,0,2,2,0,0,1,0,0,0,0,1},
+    {1,0,0,0,0,2,0,0,2,2,0,1,0,1,0,2,2,0,0,2,0,0,0,0,1},
+    {1,0,0,0,2,2,0,0,0,2,0,1,0,1,0,2,0,0,0,2,2,0,0,0,1},
+    {1,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,2,0,0,0,2,0,0,0,1},
+    {1,0,0,1,0,0,1,1,2,0,0,0,0,0,0,0,2,1,1,0,0,1,0,0,1},
+    {1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+};
+
 int currentMap[ROWS][COLS];
 int originalCurrentMap[ROWS][COLS];
 
@@ -100,6 +125,10 @@ void loadLevelMap(int levelNumber)
     else if (levelNumber == 2)
     {
         loadMap(level2);
+    }
+    else if (levelNumber == 3)
+    {
+        loadMap(level3);
     }
 }
 
@@ -472,6 +501,22 @@ void setupEnemiesForLevel(int levelNumber, std::vector<Enemy>& enemies)
         enemies.push_back(createEnemy(14, 7, Direction::Right));
         enemies.push_back(createEnemy(14, 19, Direction::Left));
     }
+
+    else if (levelNumber == 3)
+{
+    enemies.push_back(createEnemy(2, 12, Direction::Down));
+
+    enemies.push_back(createEnemy(4, 2, Direction::Right));
+    enemies.push_back(createEnemy(4, 22, Direction::Left));
+
+    enemies.push_back(createEnemy(9, 9, Direction::Right));
+    enemies.push_back(createEnemy(9, 15, Direction::Left));
+
+    enemies.push_back(createEnemy(14, 3, Direction::Right));
+    enemies.push_back(createEnemy(14, 21, Direction::Left));
+
+    enemies.push_back(createEnemy(17, 12, Direction::Up));
+}
 }
 
 void resetLevel(
@@ -1802,9 +1847,9 @@ int main()
 
     window.setFramerateLimit(60);
 
-    int currentLevel = 2;
+    int currentLevel = 3;
 loadLevelMap(currentLevel);
-window.setTitle("Bomberman Dungeon Arena - Level 2");
+window.setTitle("Bomberman Dungeon Arena - Level 3");
 
  
     sf::Font gameFont;
