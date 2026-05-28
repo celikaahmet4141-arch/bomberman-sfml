@@ -46,6 +46,31 @@ int level1[ROWS][COLS] =
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
+int level2[ROWS][COLS] =
+{
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,0,0,0,1,0,0,0,1,0,2,0,0,0,2,0,1,0,0,0,0,0,0,0,1},
+    {1,0,1,2,1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,1,2,1,0,1},
+    {1,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,1},
+    {1,0,1,0,2,1,0,2,1,0,0,1,1,2,0,0,1,2,0,2,1,0,1,0,1},
+    {1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1},
+    {1,0,2,1,2,0,0,2,0,0,0,2,0,2,0,0,0,2,0,0,2,1,2,0,1},
+    {1,0,0,0,0,0,2,1,1,0,2,1,0,1,2,0,1,1,2,0,0,0,0,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,0,0,0,0,0,2,1,1,0,2,1,0,1,2,0,1,1,2,0,0,0,0,0,1},
+    {1,0,2,1,2,0,0,2,0,0,0,2,0,2,0,0,0,2,0,0,2,1,2,0,1},
+    {1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1},
+    {1,0,1,0,2,1,0,0,1,0,0,1,1,1,0,0,1,2,0,0,1,0,1,0,1},
+    {1,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,1},
+    {1,0,1,2,1,0,0,1,0,0,1,0,0,0,1,0,0,1,0,0,1,2,1,0,1},
+    {1,0,0,0,1,0,0,0,1,0,2,0,0,0,2,0,1,0,0,0,1,0,0,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+};
+
 int currentMap[ROWS][COLS];
 int originalCurrentMap[ROWS][COLS];
 
@@ -64,6 +89,18 @@ void loadMap(const int source[ROWS][COLS])
 {
     copyLevelMap(source, currentMap);
     copyLevelMap(source, originalCurrentMap);
+}
+
+void loadLevelMap(int levelNumber)
+{
+    if (levelNumber == 1)
+    {
+        loadMap(level1);
+    }
+    else if (levelNumber == 2)
+    {
+        loadMap(level2);
+    }
 }
 
 enum class Direction
@@ -413,6 +450,30 @@ Enemy createEnemy(int row, int col, Direction startDirection)
     return enemy;
 }
 
+void setupEnemiesForLevel(int levelNumber, std::vector<Enemy>& enemies)
+{
+    enemies.clear();
+
+    if (levelNumber == 1)
+    {
+        enemies.push_back(createEnemy(1, 1, Direction::Right));
+        enemies.push_back(createEnemy(1, COLS - 2, Direction::Left));
+        enemies.push_back(createEnemy(ROWS - 2, 1, Direction::Right));
+        enemies.push_back(createEnemy(ROWS - 2, COLS - 2, Direction::Left));
+    }
+    else if (levelNumber == 2)
+    {
+        enemies.push_back(createEnemy(3, 6, Direction::Right));
+        enemies.push_back(createEnemy(3, 20, Direction::Left));
+
+        enemies.push_back(createEnemy(10, 4, Direction::Right));
+        enemies.push_back(createEnemy(10, 22, Direction::Left));
+
+        enemies.push_back(createEnemy(14, 7, Direction::Right));
+        enemies.push_back(createEnemy(14, 19, Direction::Left));
+    }
+}
+
 void resetLevel(
     float& playerX,
     float& playerY,
@@ -421,10 +482,11 @@ void resetLevel(
     float& playerInvulnerabilityTimer,
     std::vector<Enemy>& enemies,
     std::vector<Bomb>& bombs,
-    std::vector<Explosion>& explosions
+    std::vector<Explosion>& explosions,
+    int currentLevel
 )
 {
-    copyLevelMap(originalCurrentMap, currentMap);
+    loadLevelMap(currentLevel);
 
     playerX = static_cast<float>((COLS / 2) * TILE_SIZE);
     playerY = static_cast<float>((ROWS / 2) * TILE_SIZE);
@@ -433,12 +495,7 @@ void resetLevel(
     playerBombCapacity = INITIAL_PLAYER_BOMB_CAPACITY;
     playerInvulnerabilityTimer = 0.0f;
 
-    enemies.clear();
-
-    enemies.push_back(createEnemy(1, 1, Direction::Right));
-    enemies.push_back(createEnemy(1, COLS - 2, Direction::Left));
-    enemies.push_back(createEnemy(ROWS - 2, 1, Direction::Right));
-    enemies.push_back(createEnemy(ROWS - 2, COLS - 2, Direction::Left));
+    setupEnemiesForLevel(currentLevel, enemies);
 
     bombs.clear();
     explosions.clear();
@@ -1745,7 +1802,9 @@ int main()
 
     window.setFramerateLimit(60);
 
-    loadMap(level1);
+    int currentLevel = 2;
+loadLevelMap(currentLevel);
+window.setTitle("Bomberman Dungeon Arena - Level 2");
 
  
     sf::Font gameFont;
@@ -1770,13 +1829,8 @@ if (!gameFont.openFromFile("C:/Windows/Fonts/arial.ttf"))
 
  std::mt19937 rng(std::random_device{}());
 
-std::vector<Enemy> enemies =
-{
-    createEnemy(1, 1, Direction::Right),
-    createEnemy(1, COLS - 2, Direction::Left),
-    createEnemy(ROWS - 2, 1, Direction::Right),
-    createEnemy(ROWS - 2, COLS - 2, Direction::Left)
-};
+std::vector<Enemy> enemies;
+setupEnemiesForLevel(currentLevel, enemies);
 
 std::vector<Bomb> bombs;
 std::vector<Explosion> explosions;
@@ -1811,7 +1865,8 @@ bool spaceWasPressed = false;
             playerInvulnerabilityTimer,
             enemies,
             bombs,
-            explosions
+            explosions,
+            currentLevel          
         );
 
         gameState = GameState::Playing;
