@@ -170,6 +170,7 @@ enum class Direction
 };
 enum class GameState
 {
+    Menu,
     Playing,
     GameOver,
     LevelComplete
@@ -2003,6 +2004,122 @@ void drawLevelCompleteScreen(sf::RenderWindow& window, const sf::Font& font)
     window.draw(restartText);
 }
 
+void drawMainMenu(sf::RenderWindow& window, const sf::Font& font, int selectedMenuIndex)
+{
+    float screenWidth = static_cast<float>(COLS * TILE_SIZE);
+    float screenHeight = static_cast<float>(ROWS * TILE_SIZE);
+
+    sf::RectangleShape background;
+    background.setSize(sf::Vector2f(screenWidth, screenHeight));
+    background.setFillColor(sf::Color(8, 8, 13));
+    window.draw(background);
+
+    sf::Text title(font);
+    title.setString("BOMBERMAN DUNGEON ARENA");
+    title.setCharacterSize(42);
+    title.setFillColor(sf::Color(220, 190, 95));
+    title.setOutlineThickness(3.f);
+    title.setOutlineColor(sf::Color(35, 25, 12));
+    title.setPosition(sf::Vector2f(screenWidth / 2.f - 320.f, 90.f));
+    window.draw(title);
+
+    sf::Text subtitle(font);
+    subtitle.setString("Choose a dungeon map");
+    subtitle.setCharacterSize(22);
+    subtitle.setFillColor(sf::Color(180, 170, 145));
+    subtitle.setOutlineThickness(1.f);
+    subtitle.setOutlineColor(sf::Color(25, 22, 18));
+    subtitle.setPosition(sf::Vector2f(screenWidth / 2.f - 120.f, 155.f));
+    window.draw(subtitle);
+
+    const char* optionNames[4] =
+    {
+        "LEVEL 1",
+        "LEVEL 2",
+        "LEVEL 3",
+        "TWO PLAYER"
+    };
+
+    float cardWidth = 155.f;
+    float cardHeight = 95.f;
+    float spacing = 35.f;
+    float totalWidth = cardWidth * 4.f + spacing * 3.f;
+    float startX = (screenWidth - totalWidth) / 2.f;
+    float cardY = 305.f;
+
+    for (int i = 0; i < 4; i++)
+    {
+        float x = startX + i * (cardWidth + spacing);
+
+        bool selected = selectedMenuIndex == i;
+
+        sf::RectangleShape card;
+        card.setSize(sf::Vector2f(cardWidth, cardHeight));
+        card.setPosition(sf::Vector2f(x, cardY));
+
+        if (selected)
+        {
+            card.setFillColor(sf::Color(55, 42, 35));
+            card.setOutlineThickness(4.f);
+            card.setOutlineColor(sf::Color(220, 175, 70));
+        }
+        else
+        {
+            card.setFillColor(sf::Color(25, 24, 31));
+            card.setOutlineThickness(2.f);
+            card.setOutlineColor(sf::Color(75, 65, 55));
+        }
+
+        window.draw(card);
+
+        sf::RectangleShape innerShadow;
+        innerShadow.setSize(sf::Vector2f(cardWidth - 20.f, cardHeight - 20.f));
+        innerShadow.setPosition(sf::Vector2f(x + 10.f, cardY + 10.f));
+
+        if (selected)
+            innerShadow.setFillColor(sf::Color(75, 55, 42));
+        else
+            innerShadow.setFillColor(sf::Color(16, 16, 22));
+
+        window.draw(innerShadow);
+
+        sf::Text label(font);
+        label.setString(optionNames[i]);
+        label.setCharacterSize(20);
+
+        if (selected)
+            label.setFillColor(sf::Color(240, 210, 110));
+        else
+            label.setFillColor(sf::Color(170, 160, 135));
+
+        label.setOutlineThickness(1.f);
+        label.setOutlineColor(sf::Color(20, 18, 15));
+
+        if (i == 3)
+            label.setPosition(sf::Vector2f(x + 22.f, cardY + cardHeight + 18.f));
+        else
+            label.setPosition(sf::Vector2f(x + 39.f, cardY + cardHeight + 18.f));
+
+        window.draw(label);
+    }
+
+    sf::Text controls(font);
+    controls.setString("A / D or Arrow Keys: Choose map");
+    controls.setCharacterSize(20);
+    controls.setFillColor(sf::Color(150, 140, 120));
+    controls.setOutlineThickness(1.f);
+    controls.setOutlineColor(sf::Color(25, 22, 18));
+    controls.setPosition(sf::Vector2f(screenWidth / 2.f - 160.f, screenHeight - 115.f));
+    window.draw(controls);
+
+    sf::Text nextText(font);
+    nextText.setString("Enter selection will be connected in next commit");
+    nextText.setCharacterSize(18);
+    nextText.setFillColor(sf::Color(110, 105, 95));
+    nextText.setPosition(sf::Vector2f(screenWidth / 2.f - 205.f, screenHeight - 82.f));
+    window.draw(nextText);
+}
+
 void movePlayerWithKeys(
     float& playerX,
     float& playerY,
@@ -2098,7 +2215,7 @@ float player2Speed = 180.f;
     int playerLives = MAX_PLAYER_LIVES;
     int playerBombCapacity = INITIAL_PLAYER_BOMB_CAPACITY;
     float playerInvulnerabilityTimer = 0.0f;
-    GameState gameState = GameState::Playing;
+    GameState gameState = GameState::Menu;
 
     sf::Clock deltaClock;
 
@@ -2124,6 +2241,8 @@ resetPlayer2ForMode(selectedMode, player2X, player2Y);
 
 bool spaceWasPressed = false;
 bool levelSelectionKeyWasPressed = false;
+int selectedMenuIndex = 0;
+bool menuMoveKeyWasPressed = false;
 
     while (window.isOpen())
     {
@@ -2139,6 +2258,43 @@ bool levelSelectionKeyWasPressed = false;
         {
             window.close();
         }
+
+        if (gameState == GameState::Menu)
+{
+    bool moveLeftPressed =
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) ||
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left);
+
+    bool moveRightPressed =
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) ||
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right);
+
+    bool menuMovePressed = moveLeftPressed || moveRightPressed;
+
+    if (!menuMoveKeyWasPressed)
+    {
+        if (moveLeftPressed)
+        {
+            selectedMenuIndex--;
+
+            if (selectedMenuIndex < 0)
+            {
+                selectedMenuIndex = 3;
+            }
+        }
+        else if (moveRightPressed)
+        {
+            selectedMenuIndex++;
+
+            if (selectedMenuIndex > 3)
+            {
+                selectedMenuIndex = 0;
+            }
+        }
+    }
+
+    menuMoveKeyWasPressed = menuMovePressed;
+}
 
         bool selectLevel1Pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1);
 bool selectLevel2Pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2);
@@ -2388,10 +2544,17 @@ else if (enemies.empty() && bombs.empty() && explosions.empty())
 
         window.clear(sf::Color(6, 6, 10));
 
-        drawTileMap(window);
+if (gameState == GameState::Menu)
+{
+    drawMainMenu(window, gameFont, selectedMenuIndex);
+    window.display();
+    continue;
+}
 
-        drawExplosions(window, explosions);
-        drawBombs(window, bombs);
+drawTileMap(window);
+
+drawExplosions(window, explosions);
+drawBombs(window, bombs);
 
         bool shouldDrawPlayer = true;
 
