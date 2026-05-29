@@ -74,7 +74,7 @@ int level2[ROWS][COLS] =
 int level3[ROWS][COLS] =
 {
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-    {1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
     {1,0,0,1,0,0,1,1,2,0,0,0,0,0,0,0,2,1,1,0,0,1,0,0,1},
     {1,0,0,0,2,0,0,0,1,2,0,1,0,1,0,2,1,0,0,0,2,0,0,0,1},
     {1,0,0,0,2,2,0,0,0,2,0,1,0,1,0,2,0,0,0,2,2,0,0,0,1},
@@ -82,7 +82,7 @@ int level3[ROWS][COLS] =
     {1,0,0,0,0,1,0,0,2,2,0,2,0,2,0,2,2,0,0,1,0,0,0,0,1},
     {1,0,0,0,0,0,0,0,0,0,0,2,0,2,0,0,0,0,0,0,0,1,0,0,1},
     {1,0,0,2,0,0,0,2,1,0,0,1,0,1,0,0,1,2,0,0,2,0,0,0,1},
-    {1,0,0,0,0,1,2,0,1,0,0,1,0,1,0,2,1,0,2,1,0,0,0,0,1},
+    {1,0,0,0,0,1,2,0,1,0,0,1,0,1,0,0,1,0,2,1,0,0,0,0,1},
     {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
     {1,0,0,0,0,1,2,0,1,0,0,1,0,1,0,0,1,0,2,1,0,0,0,0,1},
     {1,0,0,2,0,0,0,2,1,0,0,1,0,1,0,0,1,2,0,0,2,0,0,0,1},
@@ -92,7 +92,32 @@ int level3[ROWS][COLS] =
     {1,0,0,0,2,2,0,0,0,2,0,1,0,1,0,2,0,0,0,2,2,0,0,0,1},
     {1,0,0,0,2,0,0,0,0,2,0,0,0,0,0,0,2,0,0,0,2,0,0,0,1},
     {1,0,0,1,0,0,1,1,2,0,0,0,0,0,0,0,2,1,1,0,0,1,0,0,1},
-    {1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+};
+
+int twoPlayerArena[ROWS][COLS] =
+{
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,0,2,0,1,0,2,0,1,0,2,0,0,0,2,0,1,0,2,0,1,0,2,0,1},
+    {1,0,0,0,1,0,0,0,1,0,0,0,2,0,0,0,1,0,0,0,1,0,0,0,1},
+    {1,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,0,2,0,1,0,2,0,1,0,2,0,1,0,2,0,1,0,2,0,1,0,2,0,1},
+    {1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1},
+    {1,0,1,0,1,0,1,0,1,0,1,1,0,1,1,0,1,0,1,0,1,0,1,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,0,0,0,2,0,2,0,0,0,1,0,0,0,1,0,0,0,2,0,2,0,0,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,0,1,0,1,0,1,0,1,0,1,1,0,1,1,0,1,0,1,0,1,0,1,0,1},
+    {1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1},
+    {1,0,2,0,1,0,2,0,1,0,2,0,0,0,2,0,1,0,2,0,1,0,2,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1},
+    {1,0,0,0,1,0,0,0,1,0,0,0,2,0,0,0,1,0,0,0,1,0,0,0,1},
+    {1,0,2,0,1,0,2,0,1,0,2,0,0,0,2,0,1,0,2,0,1,0,2,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
@@ -129,6 +154,10 @@ void loadLevelMap(int levelNumber)
     else if (levelNumber == 3)
     {
         loadMap(level3);
+    }
+    else if (levelNumber == 4)
+    {
+        loadMap(twoPlayerArena);
     }
 }
 
@@ -517,6 +546,46 @@ void setupEnemiesForLevel(int levelNumber, std::vector<Enemy>& enemies)
 
     enemies.push_back(createEnemy(17, 12, Direction::Up));
 }
+
+else if (levelNumber == 4)
+{
+    enemies.push_back(createEnemy(4, 8, Direction::Down));
+    enemies.push_back(createEnemy(6, 19, Direction::Left));
+    enemies.push_back(createEnemy(14, 12, Direction::Up));
+    enemies.push_back(createEnemy(17, 3, Direction::Right));
+}
+
+}
+
+void setPlayerSpawnForLevel(int levelNumber, float& playerX, float& playerY)
+{
+    int spawnRow = ROWS / 2;
+    int spawnCol = COLS / 2;
+
+    if (levelNumber == 1)
+    {
+        spawnRow = 10;
+        spawnCol = 12;
+    }
+    else if (levelNumber == 2)
+    {
+        spawnRow = 9;
+        spawnCol = 12;
+    }
+    else if (levelNumber == 3)
+    {
+        spawnRow = 9;
+        spawnCol = 12;
+    }
+    else if (levelNumber == 4)
+    {
+        // Player 1 starts on the left side.
+        spawnRow = 10;
+        spawnCol = 2;
+    }
+
+    playerX = static_cast<float>(spawnCol * TILE_SIZE);
+    playerY = static_cast<float>(spawnRow * TILE_SIZE);
 }
 
 void resetLevel(
@@ -533,8 +602,7 @@ void resetLevel(
 {
     loadLevelMap(currentLevel);
 
-    playerX = static_cast<float>((COLS / 2) * TILE_SIZE);
-    playerY = static_cast<float>((ROWS / 2) * TILE_SIZE);
+    setPlayerSpawnForLevel(currentLevel, playerX, playerY);
 
     playerLives = MAX_PLAYER_LIVES;
     playerBombCapacity = INITIAL_PLAYER_BOMB_CAPACITY;
@@ -1836,6 +1904,63 @@ void drawLevelCompleteScreen(sf::RenderWindow& window, const sf::Font& font)
     window.draw(restartText);
 }
 
+void movePlayerWithKeys(
+    float& playerX,
+    float& playerY,
+    float playerSpeed,
+    float deltaTime,
+    const std::vector<Bomb>& bombs,
+    sf::Keyboard::Key upKey,
+    sf::Keyboard::Key downKey,
+    sf::Keyboard::Key leftKey,
+    sf::Keyboard::Key rightKey
+)
+{
+    float moveX = 0.f;
+    float moveY = 0.f;
+
+    if (sf::Keyboard::isKeyPressed(upKey))
+    {
+        moveY -= 1.f;
+    }
+
+    if (sf::Keyboard::isKeyPressed(downKey))
+    {
+        moveY += 1.f;
+    }
+
+    if (sf::Keyboard::isKeyPressed(leftKey))
+    {
+        moveX -= 1.f;
+    }
+
+    if (sf::Keyboard::isKeyPressed(rightKey))
+    {
+        moveX += 1.f;
+    }
+
+    float length = std::sqrt(moveX * moveX + moveY * moveY);
+
+    if (length != 0.f)
+    {
+        moveX /= length;
+        moveY /= length;
+    }
+
+    float newX = playerX + moveX * playerSpeed * deltaTime;
+    float newY = playerY + moveY * playerSpeed * deltaTime;
+
+    if (canMoveToPixelWithBombs(newX, playerY, bombs))
+    {
+        playerX = newX;
+    }
+
+    if (canMoveToPixelWithBombs(playerX, newY, bombs))
+    {
+        playerY = newY;
+    }
+}
+
 int main()
 {
 
@@ -1847,7 +1972,7 @@ int main()
 
     window.setFramerateLimit(60);
 
-    int currentLevel = 3;
+    int currentLevel = 4;
 loadLevelMap(currentLevel);
 window.setTitle("Bomberman Dungeon Arena - Level 3");
 
