@@ -1970,6 +1970,15 @@ void drawGameOverScreen(sf::RenderWindow& window, const sf::Font& font)
     subtitle.setPosition(sf::Vector2f(screenWidth / 2.f - 135.f, screenHeight / 2.f + 5.f));
     window.draw(subtitle);
 
+    sf::Text menuText(font);
+    menuText.setString("Press M to return menu");
+    menuText.setCharacterSize(22);
+    menuText.setFillColor(sf::Color(160, 150, 125));
+    menuText.setOutlineThickness(1.f);
+    menuText.setOutlineColor(sf::Color(30, 28, 24));
+    menuText.setPosition(sf::Vector2f(screenWidth / 2.f - 130.f, screenHeight / 2.f + 78.f));
+    window.draw(menuText);
+
     sf::Text exitText(font);
     exitText.setString("Press Esc to quit");
     exitText.setCharacterSize(22);
@@ -2016,6 +2025,15 @@ void drawLevelCompleteScreen(sf::RenderWindow& window, const sf::Font& font)
     restartText.setOutlineColor(sf::Color(30, 28, 24));
     restartText.setPosition(sf::Vector2f(screenWidth / 2.f - 105.f, screenHeight / 2.f + 42.f));
     window.draw(restartText);
+
+    sf::Text menuText(font);
+    menuText.setString("Press M to return menu");
+    menuText.setCharacterSize(22);
+    menuText.setFillColor(sf::Color(160, 150, 125));
+    menuText.setOutlineThickness(1.f);
+    menuText.setOutlineColor(sf::Color(30, 28, 24));
+    menuText.setPosition(sf::Vector2f(screenWidth / 2.f - 130.f, screenHeight / 2.f + 78.f));
+    window.draw(menuText);
 }
 
 void drawMainMenu(sf::RenderWindow& window, const sf::Font& font, int selectedMenuIndex)
@@ -2362,6 +2380,17 @@ bool enterWasPressed = false;
         deltaClock.restart();
     }
 
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::M))
+    {
+        bombs.clear();
+        explosions.clear();
+
+        resetPlayer2ForMode(GameMode::Level1, player2X, player2Y);
+
+        gameState = GameState::Menu;
+        window.setTitle("Bomberman Dungeon Arena - Main Menu");
+        deltaClock.restart();
+    }
 }
 
         float deltaTime = deltaClock.restart().asSeconds();
