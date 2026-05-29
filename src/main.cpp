@@ -217,6 +217,20 @@ const char* getWindowTitle(GameMode mode)
     return "Bomberman Dungeon Arena - Two Player Arena";
 }
 
+GameMode getGameModeFromMenuIndex(int selectedMenuIndex)
+{
+    if (selectedMenuIndex == 0)
+        return GameMode::Level1;
+
+    if (selectedMenuIndex == 1)
+        return GameMode::Level2;
+
+    if (selectedMenuIndex == 2)
+        return GameMode::Level3;
+
+    return GameMode::TwoPlayerArena;
+}
+
 struct Enemy
 {
     float x;
@@ -2113,7 +2127,7 @@ void drawMainMenu(sf::RenderWindow& window, const sf::Font& font, int selectedMe
     window.draw(controls);
 
     sf::Text nextText(font);
-    nextText.setString("Enter selection will be connected in next commit");
+    nextText.setString("Enter: Start selected map");
     nextText.setCharacterSize(18);
     nextText.setFillColor(sf::Color(110, 105, 95));
     nextText.setPosition(sf::Vector2f(screenWidth / 2.f - 205.f, screenHeight - 82.f));
@@ -2243,6 +2257,7 @@ bool spaceWasPressed = false;
 bool levelSelectionKeyWasPressed = false;
 int selectedMenuIndex = 0;
 bool menuMoveKeyWasPressed = false;
+bool enterWasPressed = false;
 
     while (window.isOpen())
     {
@@ -2269,6 +2284,9 @@ bool menuMoveKeyWasPressed = false;
         sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) ||
         sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right);
 
+    bool enterPressed =
+        sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter);
+
     bool menuMovePressed = moveLeftPressed || moveRightPressed;
 
     if (!menuMoveKeyWasPressed)
@@ -2293,109 +2311,33 @@ bool menuMoveKeyWasPressed = false;
         }
     }
 
+    if (!enterWasPressed && enterPressed)
+    {
+        GameMode chosenMode = getGameModeFromMenuIndex(selectedMenuIndex);
+
+        changeGameMode(
+            chosenMode,
+            selectedMode,
+            currentLevel,
+            window,
+            playerX,
+            playerY,
+            player2X,
+            player2Y,
+            playerLives,
+            playerBombCapacity,
+            playerInvulnerabilityTimer,
+            enemies,
+            bombs,
+            explosions,
+            gameState,
+            deltaClock
+        );
+    }
+
     menuMoveKeyWasPressed = menuMovePressed;
+    enterWasPressed = enterPressed;
 }
-
-        bool selectLevel1Pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1);
-bool selectLevel2Pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2);
-bool selectLevel3Pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num3);
-bool selectTwoPlayerPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num4);
-
-bool levelSelectionPressed =
-    selectLevel1Pressed ||
-    selectLevel2Pressed ||
-    selectLevel3Pressed ||
-    selectTwoPlayerPressed;
-
-if (!levelSelectionKeyWasPressed)
-{
-    if (selectLevel1Pressed)
-    {
-        changeGameMode(
-            GameMode::Level1,
-            selectedMode,
-            currentLevel,
-            window,
-            playerX,
-            playerY,
-            player2X,
-            player2Y,
-            playerLives,
-            playerBombCapacity,
-            playerInvulnerabilityTimer,
-            enemies,
-            bombs,
-            explosions,
-            gameState,
-            deltaClock
-        );
-    }
-    else if (selectLevel2Pressed)
-    {
-        changeGameMode(
-            GameMode::Level2,
-            selectedMode,
-            currentLevel,
-            window,
-            playerX,
-            playerY,
-            player2X,
-            player2Y,
-            playerLives,
-            playerBombCapacity,
-            playerInvulnerabilityTimer,
-            enemies,
-            bombs,
-            explosions,
-            gameState,
-            deltaClock
-        );
-    }
-    else if (selectLevel3Pressed)
-    {
-        changeGameMode(
-            GameMode::Level3,
-            selectedMode,
-            currentLevel,
-            window,
-            playerX,
-            playerY,
-            player2X,
-            player2Y,
-            playerLives,
-            playerBombCapacity,
-            playerInvulnerabilityTimer,
-            enemies,
-            bombs,
-            explosions,
-            gameState,
-            deltaClock
-        );
-    }
-    else if (selectTwoPlayerPressed)
-    {
-        changeGameMode(
-            GameMode::TwoPlayerArena,
-            selectedMode,
-            currentLevel,
-            window,
-            playerX,
-            playerY,
-            player2X,
-            player2Y,
-            playerLives,
-            playerBombCapacity,
-            playerInvulnerabilityTimer,
-            enemies,
-            bombs,
-            explosions,
-            gameState,
-            deltaClock
-        );
-    }
-}
-
-levelSelectionKeyWasPressed = levelSelectionPressed;
 
 
     if (gameState == GameState::GameOver || gameState == GameState::LevelComplete)
