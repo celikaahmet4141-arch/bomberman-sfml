@@ -102,7 +102,7 @@ int twoPlayerArena[ROWS][COLS] =
     {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
     {1,0,2,0,1,0,2,0,1,0,2,0,0,0,2,0,1,0,2,0,1,0,2,0,1},
     {1,0,0,0,1,0,0,0,1,0,0,0,2,0,0,0,1,0,0,0,1,0,0,0,1},
-    {1,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1},
+    {1,0,1,0,0,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1},
     {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
     {1,0,2,0,1,0,2,0,1,0,2,0,1,0,2,0,1,0,2,0,1,0,2,0,1},
     {1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1},
@@ -174,6 +174,47 @@ enum class GameState
     GameOver,
     LevelComplete
 };
+
+enum class GameMode
+{
+    Level1,
+    Level2,
+    Level3,
+    TwoPlayerArena
+};
+
+int getLevelNumber(GameMode mode)
+{
+    if (mode == GameMode::Level1)
+        return 1;
+
+    if (mode == GameMode::Level2)
+        return 2;
+
+    if (mode == GameMode::Level3)
+        return 3;
+
+    return 4;
+}
+
+bool isTwoPlayerMode(GameMode mode)
+{
+    return mode == GameMode::TwoPlayerArena;
+}
+
+const char* getWindowTitle(GameMode mode)
+{
+    if (mode == GameMode::Level1)
+        return "Bomberman Dungeon Arena - Level 1";
+
+    if (mode == GameMode::Level2)
+        return "Bomberman Dungeon Arena - Level 2";
+
+    if (mode == GameMode::Level3)
+        return "Bomberman Dungeon Arena - Level 3";
+
+    return "Bomberman Dungeon Arena - Two Player Arena";
+}
 
 struct Enemy
 {
@@ -599,6 +640,8 @@ void resetLevel(
     std::vector<Explosion>& explosions,
     int currentLevel
 )
+
+
 {
     loadLevelMap(currentLevel);
 
@@ -612,6 +655,62 @@ void resetLevel(
 
     bombs.clear();
     explosions.clear();
+}
+
+void resetPlayer2ForMode(GameMode mode, float& player2X, float& player2Y)
+{
+    if (isTwoPlayerMode(mode))
+    {
+        // Player 2 starts near the bottom-right corner in Two Player Arena.
+        player2X = static_cast<float>(23 * TILE_SIZE);
+        player2Y = static_cast<float>(10 * TILE_SIZE);
+    }
+    else
+    {
+        player2X = -1000.f;
+        player2Y = -1000.f;
+    }
+}
+
+void changeGameMode(
+    GameMode newMode,
+    GameMode& selectedMode,
+    int& currentLevel,
+    sf::RenderWindow& window,
+    float& playerX,
+    float& playerY,
+    float& player2X,
+    float& player2Y,
+    int& playerLives,
+    int& playerBombCapacity,
+    float& playerInvulnerabilityTimer,
+    std::vector<Enemy>& enemies,
+    std::vector<Bomb>& bombs,
+    std::vector<Explosion>& explosions,
+    GameState& gameState,
+    sf::Clock& deltaClock
+)
+{
+    selectedMode = newMode;
+    currentLevel = getLevelNumber(selectedMode);
+
+    resetLevel(
+        playerX,
+        playerY,
+        playerLives,
+        playerBombCapacity,
+        playerInvulnerabilityTimer,
+        enemies,
+        bombs,
+        explosions,
+        currentLevel
+    );
+
+    resetPlayer2ForMode(selectedMode, player2X, player2Y);
+
+    gameState = GameState::Playing;
+    window.setTitle(getWindowTitle(selectedMode));
+    deltaClock.restart();
 }
 
 void drawFloor(sf::RenderWindow& window, int row, int col)
@@ -1972,9 +2071,11 @@ int main()
 
     window.setFramerateLimit(60);
 
-    int currentLevel = 4;
+    GameMode selectedMode = GameMode::Level1;
+int currentLevel = getLevelNumber(selectedMode);
+
 loadLevelMap(currentLevel);
-window.setTitle("Bomberman Dungeon Arena - Level 3");
+window.setTitle(getWindowTitle(selectedMode));
 
  
     sf::Font gameFont;
@@ -1986,9 +2087,13 @@ if (!gameFont.openFromFile("C:/Windows/Fonts/arial.ttf"))
 
 
 
-    float playerX = static_cast<float>((COLS / 2) * TILE_SIZE);
-    float playerY = static_cast<float>((ROWS / 2) * TILE_SIZE);
-    float playerSpeed = 180.f;
+    float playerX = 0.f;
+float playerY = 0.f;
+float playerSpeed = 180.f;
+
+float player2X = 0.f;
+float player2Y = 0.f;
+float player2Speed = 180.f;
 
     int playerLives = MAX_PLAYER_LIVES;
     int playerBombCapacity = INITIAL_PLAYER_BOMB_CAPACITY;
@@ -2000,11 +2105,25 @@ if (!gameFont.openFromFile("C:/Windows/Fonts/arial.ttf"))
  std::mt19937 rng(std::random_device{}());
 
 std::vector<Enemy> enemies;
-setupEnemiesForLevel(currentLevel, enemies);
-
 std::vector<Bomb> bombs;
 std::vector<Explosion> explosions;
+
+resetLevel(
+    playerX,
+    playerY,
+    playerLives,
+    playerBombCapacity,
+    playerInvulnerabilityTimer,
+    enemies,
+    bombs,
+    explosions,
+    currentLevel
+);
+
+resetPlayer2ForMode(selectedMode, player2X, player2Y);
+
 bool spaceWasPressed = false;
+bool levelSelectionKeyWasPressed = false;
 
     while (window.isOpen())
     {
@@ -2021,8 +2140,108 @@ bool spaceWasPressed = false;
             window.close();
         }
 
-        if (gameState == GameState::GameOver)
+        bool selectLevel1Pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1);
+bool selectLevel2Pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2);
+bool selectLevel3Pressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num3);
+bool selectTwoPlayerPressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num4);
+
+bool levelSelectionPressed =
+    selectLevel1Pressed ||
+    selectLevel2Pressed ||
+    selectLevel3Pressed ||
+    selectTwoPlayerPressed;
+
+if (!levelSelectionKeyWasPressed)
 {
+    if (selectLevel1Pressed)
+    {
+        changeGameMode(
+            GameMode::Level1,
+            selectedMode,
+            currentLevel,
+            window,
+            playerX,
+            playerY,
+            player2X,
+            player2Y,
+            playerLives,
+            playerBombCapacity,
+            playerInvulnerabilityTimer,
+            enemies,
+            bombs,
+            explosions,
+            gameState,
+            deltaClock
+        );
+    }
+    else if (selectLevel2Pressed)
+    {
+        changeGameMode(
+            GameMode::Level2,
+            selectedMode,
+            currentLevel,
+            window,
+            playerX,
+            playerY,
+            player2X,
+            player2Y,
+            playerLives,
+            playerBombCapacity,
+            playerInvulnerabilityTimer,
+            enemies,
+            bombs,
+            explosions,
+            gameState,
+            deltaClock
+        );
+    }
+    else if (selectLevel3Pressed)
+    {
+        changeGameMode(
+            GameMode::Level3,
+            selectedMode,
+            currentLevel,
+            window,
+            playerX,
+            playerY,
+            player2X,
+            player2Y,
+            playerLives,
+            playerBombCapacity,
+            playerInvulnerabilityTimer,
+            enemies,
+            bombs,
+            explosions,
+            gameState,
+            deltaClock
+        );
+    }
+    else if (selectTwoPlayerPressed)
+    {
+        changeGameMode(
+            GameMode::TwoPlayerArena,
+            selectedMode,
+            currentLevel,
+            window,
+            playerX,
+            playerY,
+            player2X,
+            player2Y,
+            playerLives,
+            playerBombCapacity,
+            playerInvulnerabilityTimer,
+            enemies,
+            bombs,
+            explosions,
+            gameState,
+            deltaClock
+        );
+    }
+}
+
+levelSelectionKeyWasPressed = levelSelectionPressed;
+
+
     if (gameState == GameState::GameOver || gameState == GameState::LevelComplete)
 {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R))
@@ -2036,13 +2255,15 @@ bool spaceWasPressed = false;
             enemies,
             bombs,
             explosions,
-            currentLevel          
+            currentLevel
         );
+
+        resetPlayer2ForMode(selectedMode, player2X, player2Y);
 
         gameState = GameState::Playing;
         deltaClock.restart();
     }
-}
+
 }
 
         float deltaTime = deltaClock.restart().asSeconds();
@@ -2104,6 +2325,21 @@ spaceWasPressed = spacePressed;
         if (canMoveToPixelWithBombs(newX, playerY, bombs))
 {
     playerX = newX;
+}
+
+if (isTwoPlayerMode(selectedMode))
+{
+    movePlayerWithKeys(
+        player2X,
+        player2Y,
+        player2Speed,
+        deltaTime,
+        bombs,
+        sf::Keyboard::Key::Up,
+        sf::Keyboard::Key::Down,
+        sf::Keyboard::Key::Left,
+        sf::Keyboard::Key::Right
+    );
 }
 
 if (canMoveToPixelWithBombs(playerX, newY, bombs))
@@ -2168,6 +2404,11 @@ if (playerInvulnerabilityTimer > 0.0f)
 if (shouldDrawPlayer)
 {
     drawKnight(window, playerX, playerY, static_cast<float>(TILE_SIZE));
+}
+
+if (isTwoPlayerMode(selectedMode))
+{
+    drawKnight(window, player2X, player2Y, static_cast<float>(TILE_SIZE));
 }
 
         for (const Enemy& enemy : enemies)
