@@ -687,6 +687,24 @@ void resetPlayer2ForMode(GameMode mode, float& player2X, float& player2Y)
     }
 }
 
+void resetPlayer2StatsForMode(
+    GameMode mode,
+    int& player2Lives,
+    float& player2InvulnerabilityTimer
+)
+{
+    if (isTwoPlayerMode(mode))
+    {
+        player2Lives = MAX_PLAYER_LIVES;
+        player2InvulnerabilityTimer = 0.0f;
+    }
+    else
+    {
+        player2Lives = 0;
+        player2InvulnerabilityTimer = 0.0f;
+    }
+}
+
 void changeGameMode(
     GameMode newMode,
     GameMode& selectedMode,
@@ -720,12 +738,11 @@ void changeGameMode(
         explosions,
         currentLevel
     );
-
     resetPlayer2ForMode(selectedMode, player2X, player2Y);
 
-    gameState = GameState::Playing;
-    window.setTitle(getWindowTitle(selectedMode));
-    deltaClock.restart();
+gameState = GameState::Playing;
+window.setTitle(getWindowTitle(selectedMode));
+deltaClock.restart();
 }
 
 void drawFloor(sf::RenderWindow& window, int row, int col)
@@ -1687,6 +1704,31 @@ void drawHealthHUD(sf::RenderWindow& window, int playerLives)
     }
 }
 
+void drawPlayer2HealthHUD(sf::RenderWindow& window, int player2Lives)
+{
+    sf::RectangleShape panel;
+    panel.setSize(sf::Vector2f(145.f, 42.f));
+    panel.setPosition(sf::Vector2f(8.f, 56.f));
+    panel.setFillColor(sf::Color(9, 9, 13, 230));
+    panel.setOutlineThickness(2.f);
+    panel.setOutlineColor(sf::Color(70, 90, 130));
+    window.draw(panel);
+
+    sf::RectangleShape innerPanel;
+    innerPanel.setSize(sf::Vector2f(135.f, 32.f));
+    innerPanel.setPosition(sf::Vector2f(13.f, 61.f));
+    innerPanel.setFillColor(sf::Color(18, 17, 23, 220));
+    innerPanel.setOutlineThickness(1.f);
+    innerPanel.setOutlineColor(sf::Color(35, 42, 58));
+    window.draw(innerPanel);
+
+    for (int i = 0; i < MAX_PLAYER_LIVES; i++)
+    {
+        bool full = i < player2Lives;
+        drawGothicHeart(window, 23.f + i * 38.f, 65.f, full);
+    }
+}
+
 void drawBombCooldownHUD(
     sf::RenderWindow& window,
     const std::vector<Bomb>& bombs,
@@ -2145,7 +2187,7 @@ void drawMainMenu(sf::RenderWindow& window, const sf::Font& font, int selectedMe
     window.draw(controls);
 
     sf::Text nextText(font);
-    nextText.setString("Enter: Start selected map");
+    nextText.setString("            Enter: Start selected map");
     nextText.setCharacterSize(18);
     nextText.setFillColor(sf::Color(110, 105, 95));
     nextText.setPosition(sf::Vector2f(screenWidth / 2.f - 205.f, screenHeight - 82.f));
@@ -2247,6 +2289,8 @@ float player2Speed = 180.f;
     int playerLives = MAX_PLAYER_LIVES;
     int playerBombCapacity = INITIAL_PLAYER_BOMB_CAPACITY;
     float playerInvulnerabilityTimer = 0.0f;
+    int player2Lives = 0;
+    float player2InvulnerabilityTimer = 0.0f;
     GameState gameState = GameState::Menu;
 
     sf::Clock deltaClock;
@@ -2351,6 +2395,14 @@ bool enterWasPressed = false;
             gameState,
             deltaClock
         );
+
+        resetPlayer2StatsForMode(
+    selectedMode,
+    player2Lives,
+    player2InvulnerabilityTimer
+);
+
+        
     }
 
     menuMoveKeyWasPressed = menuMovePressed;
@@ -2375,6 +2427,11 @@ bool enterWasPressed = false;
         );
 
         resetPlayer2ForMode(selectedMode, player2X, player2Y);
+        resetPlayer2StatsForMode(
+        selectedMode,
+        player2Lives,
+        player2InvulnerabilityTimer
+);
 
         gameState = GameState::Playing;
         deltaClock.restart();
@@ -2386,6 +2443,11 @@ bool enterWasPressed = false;
         explosions.clear();
 
         resetPlayer2ForMode(GameMode::Level1, player2X, player2Y);
+        resetPlayer2StatsForMode(
+        GameMode::Level1,
+        player2Lives,
+        player2InvulnerabilityTimer
+);
 
         gameState = GameState::Menu;
         window.setTitle("Bomberman Dungeon Arena - Main Menu");
@@ -2413,6 +2475,16 @@ spaceWasPressed = spacePressed;
     if (playerInvulnerabilityTimer < 0.0f)
     {
         playerInvulnerabilityTimer = 0.0f;
+    }
+}
+
+if (isTwoPlayerMode(selectedMode) && player2InvulnerabilityTimer > 0.0f)
+{
+    player2InvulnerabilityTimer -= deltaTime;
+
+    if (player2InvulnerabilityTimer < 0.0f)
+    {
+        player2InvulnerabilityTimer = 0.0f;
     }
 }
 
@@ -2502,7 +2574,26 @@ checkEnemyContactDamage(
     playerInvulnerabilityTimer
 );
 
-if (playerLives <= 0)
+if (isTwoPlayerMode(selectedMode))
+{
+    checkPlayerExplosionDamage(
+        player2X,
+        player2Y,
+        explosions,
+        player2Lives,
+        player2InvulnerabilityTimer
+    );
+
+    checkEnemyContactDamage(
+        player2X,
+        player2Y,
+        enemies,
+        player2Lives,
+        player2InvulnerabilityTimer
+    );
+}
+
+if (playerLives <= 0 || (isTwoPlayerMode(selectedMode) && player2Lives <= 0))
 {
     gameState = GameState::GameOver;
 }
@@ -2542,7 +2633,18 @@ if (shouldDrawPlayer)
 
 if (isTwoPlayerMode(selectedMode))
 {
-    drawKnight(window, player2X, player2Y, static_cast<float>(TILE_SIZE));
+    bool shouldDrawPlayer2 = true;
+
+    if (player2InvulnerabilityTimer > 0.0f)
+    {
+        int blinkFrame = static_cast<int>(player2InvulnerabilityTimer * 12.0f);
+        shouldDrawPlayer2 = blinkFrame % 2 == 0;
+    }
+
+    if (shouldDrawPlayer2 && player2Lives > 0)
+    {
+        drawKnight(window, player2X, player2Y, static_cast<float>(TILE_SIZE));
+    }
 }
 
         for (const Enemy& enemy : enemies)
@@ -2550,7 +2652,13 @@ if (isTwoPlayerMode(selectedMode))
         drawGoblin(window, enemy.x, enemy.y, static_cast<float>(TILE_SIZE));
 }
         drawHealthHUD(window, playerLives);
-        drawBombCooldownHUD(window, bombs, playerBombCapacity);
+
+if (isTwoPlayerMode(selectedMode))
+{
+    drawPlayer2HealthHUD(window, player2Lives);
+}
+
+drawBombCooldownHUD(window, bombs, playerBombCapacity);
 
         if (gameState == GameState::GameOver)
 {
