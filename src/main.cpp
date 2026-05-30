@@ -173,7 +173,8 @@ enum class GameState
     Menu,
     Playing,
     GameOver,
-    LevelComplete
+    LevelComplete,
+    TwoPlayerGameOver,
 };
 
 enum class GameMode
@@ -2139,6 +2140,80 @@ void drawLevelCompleteScreen(sf::RenderWindow& window, const sf::Font& font)
     window.draw(menuText);
 }
 
+void drawTwoPlayerResultScreen(
+    sf::RenderWindow& window,
+    const sf::Font& font,
+    int winner
+)
+{
+    float screenWidth = static_cast<float>(COLS * TILE_SIZE);
+    float screenHeight = static_cast<float>(ROWS * TILE_SIZE);
+
+    sf::RectangleShape darkOverlay;
+    darkOverlay.setSize(sf::Vector2f(screenWidth, screenHeight));
+    darkOverlay.setPosition(sf::Vector2f(0.f, 0.f));
+    darkOverlay.setFillColor(sf::Color(0, 0, 0, 185));
+    window.draw(darkOverlay);
+
+    sf::RectangleShape panel;
+    panel.setSize(sf::Vector2f(500.f, 270.f));
+    panel.setPosition(sf::Vector2f(screenWidth / 2.f - 250.f, screenHeight / 2.f - 135.f));
+    panel.setFillColor(sf::Color(14, 12, 18, 245));
+    panel.setOutlineThickness(3.f);
+    panel.setOutlineColor(sf::Color(135, 105, 55));
+    window.draw(panel);
+
+    sf::RectangleShape innerPanel;
+    innerPanel.setSize(sf::Vector2f(470.f, 240.f));
+    innerPanel.setPosition(sf::Vector2f(screenWidth / 2.f - 235.f, screenHeight / 2.f - 120.f));
+    innerPanel.setFillColor(sf::Color(22, 19, 27, 235));
+    innerPanel.setOutlineThickness(1.f);
+    innerPanel.setOutlineColor(sf::Color(90, 78, 58));
+    window.draw(innerPanel);
+
+    sf::Text title(font);
+
+    if (winner == 1)
+    {
+        title.setString("PLAYER 1 WINS");
+        title.setFillColor(sf::Color(230, 190, 85));
+    }
+    else if (winner == 2)
+    {
+        title.setString("PLAYER 2 WINS");
+        title.setFillColor(sf::Color(110, 150, 230));
+    }
+    else
+    {
+        title.setString("DRAW");
+        title.setFillColor(sf::Color(190, 185, 170));
+    }
+
+    title.setCharacterSize(52);
+    title.setOutlineThickness(3.f);
+    title.setOutlineColor(sf::Color(25, 20, 15));
+    title.setPosition(sf::Vector2f(screenWidth / 2.f - 190.f, screenHeight / 2.f - 70.f));
+    window.draw(title);
+
+    sf::Text restartText(font);
+    restartText.setString("Press R to restart");
+    restartText.setCharacterSize(22);
+    restartText.setFillColor(sf::Color(220, 200, 150));
+    restartText.setOutlineThickness(1.f);
+    restartText.setOutlineColor(sf::Color(30, 28, 24));
+    restartText.setPosition(sf::Vector2f(screenWidth / 2.f - 105.f, screenHeight / 2.f + 25.f));
+    window.draw(restartText);
+
+    sf::Text menuText(font);
+    menuText.setString("Press M to return menu");
+    menuText.setCharacterSize(22);
+    menuText.setFillColor(sf::Color(160, 150, 125));
+    menuText.setOutlineThickness(1.f);
+    menuText.setOutlineColor(sf::Color(30, 28, 24));
+    menuText.setPosition(sf::Vector2f(screenWidth / 2.f - 130.f, screenHeight / 2.f + 62.f));
+    window.draw(menuText);
+}
+
 void drawMainMenu(sf::RenderWindow& window, const sf::Font& font, int selectedMenuIndex)
 {
     float screenWidth = static_cast<float>(COLS * TILE_SIZE);
@@ -2239,20 +2314,31 @@ void drawMainMenu(sf::RenderWindow& window, const sf::Font& font, int selectedMe
     }
 
     sf::Text controls(font);
-    controls.setString("A / D or Arrow Keys: Choose map");
-    controls.setCharacterSize(20);
-    controls.setFillColor(sf::Color(150, 140, 120));
-    controls.setOutlineThickness(1.f);
-    controls.setOutlineColor(sf::Color(25, 22, 18));
-    controls.setPosition(sf::Vector2f(screenWidth / 2.f - 160.f, screenHeight - 115.f));
-    window.draw(controls);
+controls.setString("A / D or Arrow Keys: Choose map    |    Enter: Start selected map");
+controls.setCharacterSize(18);
+controls.setFillColor(sf::Color(150, 140, 120));
+controls.setOutlineThickness(1.f);
+controls.setOutlineColor(sf::Color(25, 22, 18));
+controls.setPosition(sf::Vector2f(screenWidth / 2.f - 300.f, screenHeight - 130.f));
+window.draw(controls);
 
-    sf::Text nextText(font);
-    nextText.setString("            Enter: Start selected map");
-    nextText.setCharacterSize(18);
-    nextText.setFillColor(sf::Color(110, 105, 95));
-    nextText.setPosition(sf::Vector2f(screenWidth / 2.f - 205.f, screenHeight - 82.f));
-    window.draw(nextText);
+sf::Text player1Controls(font);
+player1Controls.setString("Player 1: W A S D to move    |    Space to place bomb");
+player1Controls.setCharacterSize(18);
+player1Controls.setFillColor(sf::Color(190, 170, 120));
+player1Controls.setOutlineThickness(1.f);
+player1Controls.setOutlineColor(sf::Color(25, 22, 18));
+player1Controls.setPosition(sf::Vector2f(screenWidth / 2.f - 245.f, screenHeight - 100.f));
+window.draw(player1Controls);
+
+sf::Text player2Controls(font);
+player2Controls.setString("Player 2: Arrow Keys to move    |    Right Ctrl to place bomb");
+player2Controls.setCharacterSize(18);
+player2Controls.setFillColor(sf::Color(120, 150, 210));
+player2Controls.setOutlineThickness(1.f);
+player2Controls.setOutlineColor(sf::Color(25, 22, 18));
+player2Controls.setPosition(sf::Vector2f(screenWidth / 2.f - 270.f, screenHeight - 70.f));
+window.draw(player2Controls);
 }
 
 void movePlayerWithKeys(
@@ -2332,8 +2418,15 @@ window.setTitle(getWindowTitle(selectedMode));
  
     sf::Font gameFont;
 
-if (!gameFont.openFromFile("C:/Windows/Fonts/arial.ttf"))
+bool fontLoaded =
+    gameFont.openFromFile("C:/Windows/Fonts/arial.ttf") ||
+    gameFont.openFromFile("C:/Windows/Fonts/Arial.ttf") ||
+    gameFont.openFromFile("C:/Windows/Fonts/segoeui.ttf") ||
+    gameFont.openFromFile("C:/Windows/Fonts/calibri.ttf");
+
+if (!fontLoaded)
 {
+    window.close();
     return -1;
 }
 
@@ -2385,6 +2478,7 @@ bool levelSelectionKeyWasPressed = false;
 int selectedMenuIndex = 0;
 bool menuMoveKeyWasPressed = false;
 bool enterWasPressed = false;
+int twoPlayerWinner = 0;
 
     while (window.isOpen())
     {
@@ -2475,7 +2569,11 @@ bool enterWasPressed = false;
 }
 
 
-    if (gameState == GameState::GameOver || gameState == GameState::LevelComplete)
+    if (
+    gameState == GameState::GameOver ||
+    gameState == GameState::LevelComplete ||
+    gameState == GameState::TwoPlayerGameOver
+)
 {
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R))
     {
@@ -2498,6 +2596,7 @@ bool enterWasPressed = false;
         player2InvulnerabilityTimer
 );
 
+        twoPlayerWinner = 0;
         gameState = GameState::Playing;
         deltaClock.restart();
     }
@@ -2513,8 +2612,9 @@ bool enterWasPressed = false;
         player2Lives,
         player2InvulnerabilityTimer
 );
-
+        twoPlayerWinner = 0;
         gameState = GameState::Menu;
+        twoPlayerWinner = 0;
         window.setTitle("Bomberman Dungeon Arena - Main Menu");
         deltaClock.restart();
     }
@@ -2674,13 +2774,42 @@ if (isTwoPlayerMode(selectedMode))
     );
 }
 
-if (playerLives <= 0 || (isTwoPlayerMode(selectedMode) && player2Lives <= 0))
+if (isTwoPlayerMode(selectedMode))
 {
-    gameState = GameState::GameOver;
+    bool player1Dead = playerLives <= 0;
+    bool player2Dead = player2Lives <= 0;
+
+    if (player1Dead && player2Dead)
+    {
+        twoPlayerWinner = 0;
+        gameState = GameState::TwoPlayerGameOver;
+    }
+    else if (player1Dead)
+    {
+        twoPlayerWinner = 2;
+        gameState = GameState::TwoPlayerGameOver;
+    }
+    else if (player2Dead)
+    {
+        twoPlayerWinner = 1;
+        gameState = GameState::TwoPlayerGameOver;
+    }
+    else if (enemies.empty() && bombs.empty() && explosions.empty())
+    {
+        twoPlayerWinner = 0;
+        gameState = GameState::TwoPlayerGameOver;
+    }
 }
-else if (enemies.empty() && bombs.empty() && explosions.empty())
+else
 {
-    gameState = GameState::LevelComplete;
+    if (playerLives <= 0)
+    {
+        gameState = GameState::GameOver;
+    }
+    else if (enemies.empty() && bombs.empty() && explosions.empty())
+    {
+        gameState = GameState::LevelComplete;
+    }
 }
 
 }
@@ -2749,6 +2878,11 @@ if (isTwoPlayerMode(selectedMode))
 if (gameState == GameState::LevelComplete)
 {
     drawLevelCompleteScreen(window, gameFont);
+}
+
+if (gameState == GameState::TwoPlayerGameOver)
+{
+    drawTwoPlayerResultScreen(window, gameFont, twoPlayerWinner);
 }
 
         window.display();
