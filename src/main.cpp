@@ -2151,24 +2151,30 @@ void drawTwoPlayerResultScreen(
 
     sf::RectangleShape darkOverlay;
     darkOverlay.setSize(sf::Vector2f(screenWidth, screenHeight));
-    darkOverlay.setPosition(sf::Vector2f(0.f, 0.f));
-    darkOverlay.setFillColor(sf::Color(0, 0, 0, 185));
+    darkOverlay.setFillColor(sf::Color(0, 0, 0, 190));
     window.draw(darkOverlay);
 
     sf::RectangleShape panel;
-    panel.setSize(sf::Vector2f(500.f, 270.f));
-    panel.setPosition(sf::Vector2f(screenWidth / 2.f - 250.f, screenHeight / 2.f - 135.f));
-    panel.setFillColor(sf::Color(14, 12, 18, 245));
-    panel.setOutlineThickness(3.f);
-    panel.setOutlineColor(sf::Color(135, 105, 55));
+    panel.setSize(sf::Vector2f(540.f, 300.f));
+    panel.setPosition(sf::Vector2f(screenWidth / 2.f - 270.f, screenHeight / 2.f - 150.f));
+    panel.setFillColor(sf::Color(13, 11, 17, 245));
+    panel.setOutlineThickness(4.f);
+
+    if (winner == 1)
+        panel.setOutlineColor(sf::Color(220, 175, 70));
+    else if (winner == 2)
+        panel.setOutlineColor(sf::Color(90, 130, 210));
+    else
+        panel.setOutlineColor(sf::Color(145, 135, 115));
+
     window.draw(panel);
 
     sf::RectangleShape innerPanel;
-    innerPanel.setSize(sf::Vector2f(470.f, 240.f));
-    innerPanel.setPosition(sf::Vector2f(screenWidth / 2.f - 235.f, screenHeight / 2.f - 120.f));
-    innerPanel.setFillColor(sf::Color(22, 19, 27, 235));
+    innerPanel.setSize(sf::Vector2f(505.f, 265.f));
+    innerPanel.setPosition(sf::Vector2f(screenWidth / 2.f - 252.5f, screenHeight / 2.f - 132.5f));
+    innerPanel.setFillColor(sf::Color(22, 19, 28, 235));
     innerPanel.setOutlineThickness(1.f);
-    innerPanel.setOutlineColor(sf::Color(90, 78, 58));
+    innerPanel.setOutlineColor(sf::Color(85, 75, 60));
     window.draw(innerPanel);
 
     sf::Text title(font);
@@ -2176,42 +2182,69 @@ void drawTwoPlayerResultScreen(
     if (winner == 1)
     {
         title.setString("PLAYER 1 WINS");
-        title.setFillColor(sf::Color(230, 190, 85));
+        title.setFillColor(sf::Color(240, 200, 90));
+        title.setPosition(sf::Vector2f(screenWidth / 2.f - 205.f, screenHeight / 2.f - 90.f));
     }
     else if (winner == 2)
     {
         title.setString("PLAYER 2 WINS");
-        title.setFillColor(sf::Color(110, 150, 230));
+        title.setFillColor(sf::Color(120, 165, 240));
+        title.setPosition(sf::Vector2f(screenWidth / 2.f - 205.f, screenHeight / 2.f - 90.f));
     }
     else
     {
         title.setString("DRAW");
-        title.setFillColor(sf::Color(190, 185, 170));
+        title.setFillColor(sf::Color(205, 198, 180));
+        title.setPosition(sf::Vector2f(screenWidth / 2.f - 75.f, screenHeight / 2.f - 90.f));
     }
 
     title.setCharacterSize(52);
     title.setOutlineThickness(3.f);
     title.setOutlineColor(sf::Color(25, 20, 15));
-    title.setPosition(sf::Vector2f(screenWidth / 2.f - 190.f, screenHeight / 2.f - 70.f));
     window.draw(title);
 
+    sf::Text subtitle(font);
+
+    if (winner == 1)
+        subtitle.setString("Player 2 has fallen in the dungeon.");
+    else if (winner == 2)
+        subtitle.setString("Player 1 has fallen in the dungeon.");
+    else
+        subtitle.setString("Both players fell. No one escapes.");
+
+    subtitle.setCharacterSize(22);
+    subtitle.setFillColor(sf::Color(190, 180, 150));
+    subtitle.setOutlineThickness(1.f);
+    subtitle.setOutlineColor(sf::Color(25, 22, 18));
+    subtitle.setPosition(sf::Vector2f(screenWidth / 2.f - 190.f, screenHeight / 2.f - 20.f));
+    window.draw(subtitle);
+
     sf::Text restartText(font);
-    restartText.setString("Press R to restart");
+    restartText.setString("R: Restart arena");
     restartText.setCharacterSize(22);
     restartText.setFillColor(sf::Color(220, 200, 150));
     restartText.setOutlineThickness(1.f);
     restartText.setOutlineColor(sf::Color(30, 28, 24));
-    restartText.setPosition(sf::Vector2f(screenWidth / 2.f - 105.f, screenHeight / 2.f + 25.f));
+    restartText.setPosition(sf::Vector2f(screenWidth / 2.f - 105.f, screenHeight / 2.f + 42.f));
     window.draw(restartText);
 
     sf::Text menuText(font);
-    menuText.setString("Press M to return menu");
+    menuText.setString("M: Return to menu");
     menuText.setCharacterSize(22);
-    menuText.setFillColor(sf::Color(160, 150, 125));
+    menuText.setFillColor(sf::Color(165, 155, 130));
     menuText.setOutlineThickness(1.f);
     menuText.setOutlineColor(sf::Color(30, 28, 24));
-    menuText.setPosition(sf::Vector2f(screenWidth / 2.f - 130.f, screenHeight / 2.f + 62.f));
+    menuText.setPosition(sf::Vector2f(screenWidth / 2.f - 115.f, screenHeight / 2.f + 78.f));
     window.draw(menuText);
+
+    sf::Text quitText(font);
+    quitText.setString("Esc: Quit game");
+    quitText.setCharacterSize(18);
+    quitText.setFillColor(sf::Color(110, 105, 95));
+    quitText.setOutlineThickness(1.f);
+    quitText.setOutlineColor(sf::Color(25, 22, 18));
+    quitText.setPosition(sf::Vector2f(screenWidth / 2.f - 75.f, screenHeight / 2.f + 112.f));
+    window.draw(quitText);
 }
 
 void drawMainMenu(sf::RenderWindow& window, const sf::Font& font, int selectedMenuIndex)
@@ -2613,8 +2646,7 @@ int twoPlayerWinner = 0;
         player2InvulnerabilityTimer
 );
         twoPlayerWinner = 0;
-        gameState = GameState::Menu;
-        twoPlayerWinner = 0;
+        gameState = GameState::Menu;;
         window.setTitle("Bomberman Dungeon Arena - Main Menu");
         deltaClock.restart();
     }
