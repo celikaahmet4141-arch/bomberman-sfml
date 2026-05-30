@@ -249,6 +249,7 @@ struct Bomb
     int col;
     float timer;
     bool playerCanPass;
+    int owner;
 };
 
 struct Explosion
@@ -903,6 +904,34 @@ bool hasBombAt(const std::vector<Bomb>& bombs, int row, int col)
     return false;
 }
 
+int countActiveBombsForOwner(const std::vector<Bomb>& bombs, int owner)
+{
+    int count = 0;
+
+    for (const Bomb& bomb : bombs)
+    {
+        if (bomb.owner == owner)
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+float getFirstBombTimerForOwner(const std::vector<Bomb>& bombs, int owner)
+{
+    for (const Bomb& bomb : bombs)
+    {
+        if (bomb.owner == owner)
+        {
+            return bomb.timer;
+        }
+    }
+
+    return -1.0f;
+}
+
 bool entityOverlapsTile(float x, float y, int row, int col)
 {
     const float margin = 7.f;
@@ -973,14 +1002,39 @@ void updateBombPassState(std::vector<Bomb>& bombs, float playerX, float playerY)
     }
 }
 
+void updateBombPassStateForPlayers(
+    std::vector<Bomb>& bombs,
+    float playerX,
+    float playerY,
+    float player2X,
+    float player2Y,
+    bool twoPlayerMode
+)
+{
+    for (Bomb& bomb : bombs)
+    {
+        if (bomb.playerCanPass)
+        {
+            bool player1StillOnBomb = entityOverlapsTile(playerX, playerY, bomb.row, bomb.col);
+            bool player2StillOnBomb = twoPlayerMode && entityOverlapsTile(player2X, player2Y, bomb.row, bomb.col);
+
+            if (!player1StillOnBomb && !player2StillOnBomb)
+            {
+                bomb.playerCanPass = false;
+            }
+        }
+    }
+}
+
 void placeBomb(
     std::vector<Bomb>& bombs,
     float playerX,
     float playerY,
-    int playerBombCapacity
+    int playerBombCapacity,
+    int owner
 )
 {
-    if (static_cast<int>(bombs.size()) >= playerBombCapacity)
+    if (countActiveBombsForOwner(bombs, owner) >= playerBombCapacity)
     {
         return;
     }
@@ -991,9 +1045,9 @@ void placeBomb(
     int row = playerTile.y;
 
     if (currentMap[row][col] != 0)
-{
-    return;
-}
+    {
+        return;
+    }
 
     if (hasBombAt(bombs, row, col))
     {
@@ -1005,6 +1059,7 @@ void placeBomb(
     bomb.col = col;
     bomb.timer = BOMB_TIMER;
     bomb.playerCanPass = true;
+    bomb.owner = owner;
 
     bombs.push_back(bomb);
 }
@@ -1706,9 +1761,15 @@ void drawHealthHUD(sf::RenderWindow& window, int playerLives)
 
 void drawPlayer2HealthHUD(sf::RenderWindow& window, int player2Lives)
 {
+    float screenWidth = static_cast<float>(COLS * TILE_SIZE);
+    float screenHeight = static_cast<float>(ROWS * TILE_SIZE);
+
+    float panelX = screenWidth - 155.f;
+    float panelY = screenHeight - 50.f;
+
     sf::RectangleShape panel;
     panel.setSize(sf::Vector2f(145.f, 42.f));
-    panel.setPosition(sf::Vector2f(8.f, 56.f));
+    panel.setPosition(sf::Vector2f(panelX, panelY));
     panel.setFillColor(sf::Color(9, 9, 13, 230));
     panel.setOutlineThickness(2.f);
     panel.setOutlineColor(sf::Color(70, 90, 130));
@@ -1716,7 +1777,7 @@ void drawPlayer2HealthHUD(sf::RenderWindow& window, int player2Lives)
 
     sf::RectangleShape innerPanel;
     innerPanel.setSize(sf::Vector2f(135.f, 32.f));
-    innerPanel.setPosition(sf::Vector2f(13.f, 61.f));
+    innerPanel.setPosition(sf::Vector2f(panelX + 5.f, panelY + 5.f));
     innerPanel.setFillColor(sf::Color(18, 17, 23, 220));
     innerPanel.setOutlineThickness(1.f);
     innerPanel.setOutlineColor(sf::Color(35, 42, 58));
@@ -1725,28 +1786,29 @@ void drawPlayer2HealthHUD(sf::RenderWindow& window, int player2Lives)
     for (int i = 0; i < MAX_PLAYER_LIVES; i++)
     {
         bool full = i < player2Lives;
-        drawGothicHeart(window, 23.f + i * 38.f, 65.f, full);
+        drawGothicHeart(window, panelX + 15.f + i * 38.f, panelY + 9.f, full);
     }
 }
 
-void drawBombCooldownHUD(
+void drawBombCooldownHUDAt(
     sf::RenderWindow& window,
     const std::vector<Bomb>& bombs,
-    int playerBombCapacity
+    int playerBombCapacity,
+    int owner,
+    float panelX,
+    float panelY,
+    sf::Color accentColor
 )
 {
-    float screenWidth = static_cast<float>(COLS * TILE_SIZE);
-
-    float panelX = screenWidth - 155.f;
-    float panelY = 8.f;
-
-    bool bombReady = static_cast<int>(bombs.size()) < playerBombCapacity;
+    int activeBombCount = countActiveBombsForOwner(bombs, owner);
+    bool bombReady = activeBombCount < playerBombCapacity;
 
     float readyRatio = 1.0f;
+    float firstBombTimer = getFirstBombTimerForOwner(bombs, owner);
 
-    if (!bombReady && !bombs.empty())
+    if (!bombReady && firstBombTimer >= 0.0f)
     {
-        readyRatio = 1.0f - (bombs.front().timer / BOMB_TIMER);
+        readyRatio = 1.0f - (firstBombTimer / BOMB_TIMER);
 
         if (readyRatio < 0.0f)
             readyRatio = 0.0f;
@@ -1760,7 +1822,7 @@ void drawBombCooldownHUD(
     panel.setPosition(sf::Vector2f(panelX, panelY));
     panel.setFillColor(sf::Color(9, 9, 13, 230));
     panel.setOutlineThickness(2.f);
-    panel.setOutlineColor(sf::Color(95, 78, 48));
+    panel.setOutlineColor(accentColor);
     window.draw(panel);
 
     sf::RectangleShape innerPanel;
@@ -1785,73 +1847,72 @@ void drawBombCooldownHUD(
         bombIcon.setFillColor(sf::Color(82, 32, 32));
 
     bombIcon.setOutlineThickness(2.f);
-    bombIcon.setOutlineColor(sf::Color(130, 105, 55));
+    bombIcon.setOutlineColor(accentColor);
     window.draw(bombIcon);
 
-    sf::CircleShape shine(3.f);
-    shine.setPosition(sf::Vector2f(panelX + 25.f, panelY + 16.f));
-
-    if (bombReady)
-        shine.setFillColor(sf::Color(135, 210, 130));
-    else
-        shine.setFillColor(sf::Color(210, 95, 70));
-
-    window.draw(shine);
-
     sf::RectangleShape fuse;
-    fuse.setSize(sf::Vector2f(12.f, 3.f));
-    fuse.setPosition(sf::Vector2f(panelX + 35.f, panelY + 12.f));
-    fuse.setFillColor(sf::Color(135, 90, 35));
+    fuse.setSize(sf::Vector2f(10.f, 3.f));
+    fuse.setPosition(sf::Vector2f(panelX + 34.f, panelY + 13.f));
+    fuse.setFillColor(sf::Color(150, 120, 65));
     fuse.setRotation(sf::degrees(-25.f));
     window.draw(fuse);
 
-    sf::CircleShape statusLight(5.f);
-    statusLight.setPosition(sf::Vector2f(panelX + 53.f, panelY + 16.f));
-
-    if (bombReady)
-        statusLight.setFillColor(sf::Color(70, 190, 80));
-    else
-        statusLight.setFillColor(sf::Color(190, 45, 35));
-
-    window.draw(statusLight);
-
     sf::RectangleShape barBack;
-    barBack.setSize(sf::Vector2f(68.f, 8.f));
-    barBack.setPosition(sf::Vector2f(panelX + 67.f, panelY + 17.f));
-    barBack.setFillColor(sf::Color(35, 32, 38));
+    barBack.setSize(sf::Vector2f(78.f, 8.f));
+    barBack.setPosition(sf::Vector2f(panelX + 55.f, panelY + 18.f));
+    barBack.setFillColor(sf::Color(32, 29, 35));
     barBack.setOutlineThickness(1.f);
-    barBack.setOutlineColor(sf::Color(80, 68, 48));
+    barBack.setOutlineColor(sf::Color(70, 62, 55));
     window.draw(barBack);
 
     sf::RectangleShape barFill;
-    barFill.setSize(sf::Vector2f(68.f * readyRatio, 8.f));
-    barFill.setPosition(sf::Vector2f(panelX + 67.f, panelY + 17.f));
+    barFill.setSize(sf::Vector2f(78.f * readyRatio, 8.f));
+    barFill.setPosition(sf::Vector2f(panelX + 55.f, panelY + 18.f));
 
     if (bombReady)
-        barFill.setFillColor(sf::Color(75, 170, 80));
+        barFill.setFillColor(sf::Color(65, 150, 85));
     else
-        barFill.setFillColor(sf::Color(180, 65, 35));
+        barFill.setFillColor(sf::Color(170, 55, 45));
 
     window.draw(barFill);
+}
 
-    sf::RectangleShape topLine;
-    topLine.setSize(sf::Vector2f(28.f, 2.f));
-    topLine.setPosition(sf::Vector2f(panelX + 102.f, panelY + 11.f));
-    topLine.setFillColor(sf::Color(135, 105, 48));
-    window.draw(topLine);
+void drawBombCooldownHUD(
+    sf::RenderWindow& window,
+    const std::vector<Bomb>& bombs,
+    int playerBombCapacity
+)
+{
+    float screenWidth = static_cast<float>(COLS * TILE_SIZE);
 
-    sf::RectangleShape slot;
-    slot.setSize(sf::Vector2f(11.f, 11.f));
-    slot.setPosition(sf::Vector2f(panelX + 121.f, panelY + 27.f));
-    slot.setOutlineThickness(1.f);
-    slot.setOutlineColor(sf::Color(115, 92, 52));
+    drawBombCooldownHUDAt(
+        window,
+        bombs,
+        playerBombCapacity,
+        1,
+        screenWidth - 155.f,
+        8.f,
+        sf::Color(95, 78, 48)
+    );
+}
 
-    if (bombReady)
-        slot.setFillColor(sf::Color(55, 95, 58));
-    else
-        slot.setFillColor(sf::Color(85, 38, 35));
+void drawPlayer2BombHUD(
+    sf::RenderWindow& window,
+    const std::vector<Bomb>& bombs,
+    int player2BombCapacity
+)
+{
+    float screenHeight = static_cast<float>(ROWS * TILE_SIZE);
 
-    window.draw(slot);
+    drawBombCooldownHUDAt(
+        window,
+        bombs,
+        player2BombCapacity,
+        2,
+        8.f,
+        screenHeight - 50.f,
+        sf::Color(70, 90, 130)
+    );
 }
 
 bool areEntitiesTouching(float firstX, float firstY, float secondX, float secondY)
@@ -2289,8 +2350,11 @@ float player2Speed = 180.f;
     int playerLives = MAX_PLAYER_LIVES;
     int playerBombCapacity = INITIAL_PLAYER_BOMB_CAPACITY;
     float playerInvulnerabilityTimer = 0.0f;
+
     int player2Lives = 0;
+    int player2BombCapacity = INITIAL_PLAYER_BOMB_CAPACITY;
     float player2InvulnerabilityTimer = 0.0f;
+
     GameState gameState = GameState::Menu;
 
     sf::Clock deltaClock;
@@ -2316,6 +2380,7 @@ resetLevel(
 resetPlayer2ForMode(selectedMode, player2X, player2Y);
 
 bool spaceWasPressed = false;
+bool player2BombWasPressed = false;
 bool levelSelectionKeyWasPressed = false;
 int selectedMenuIndex = 0;
 bool menuMoveKeyWasPressed = false;
@@ -2460,14 +2525,23 @@ bool enterWasPressed = false;
 {
     bool spacePressed = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space);
 
-
-    if (spacePressed && !spaceWasPressed)
+if (spacePressed && !spaceWasPressed)
 {
-    placeBomb(bombs, playerX, playerY, playerBombCapacity);
+    placeBomb(bombs, playerX, playerY, playerBombCapacity, 1);
 }
 
 spaceWasPressed = spacePressed;
 
+bool player2BombPressed =
+    isTwoPlayerMode(selectedMode) &&
+    sf::Keyboard::isKeyPressed(sf::Keyboard::Key::RControl);
+
+if (player2BombPressed && !player2BombWasPressed)
+{
+    placeBomb(bombs, player2X, player2Y, player2BombCapacity, 2);
+}
+
+player2BombWasPressed = player2BombPressed;
         if (playerInvulnerabilityTimer > 0.0f)
 {
     playerInvulnerabilityTimer -= deltaTime;
@@ -2553,7 +2627,14 @@ if (canMoveToPixelWithBombs(playerX, newY, bombs))
     }
 
     
-updateBombPassState(bombs, playerX, playerY);
+updateBombPassStateForPlayers(
+    bombs,
+    playerX,
+    playerY,
+    player2X,
+    player2Y,
+    isTwoPlayerMode(selectedMode)
+);
 updateBombTimers(bombs, explosions, deltaTime);
 updateExplosions(explosions, deltaTime);
 removeEnemiesHitByExplosions(enemies, explosions);
@@ -2652,13 +2733,13 @@ if (isTwoPlayerMode(selectedMode))
         drawGoblin(window, enemy.x, enemy.y, static_cast<float>(TILE_SIZE));
 }
         drawHealthHUD(window, playerLives);
+drawBombCooldownHUD(window, bombs, playerBombCapacity);
 
 if (isTwoPlayerMode(selectedMode))
 {
+    drawPlayer2BombHUD(window, bombs, player2BombCapacity);
     drawPlayer2HealthHUD(window, player2Lives);
 }
-
-drawBombCooldownHUD(window, bombs, playerBombCapacity);
 
         if (gameState == GameState::GameOver)
 {
